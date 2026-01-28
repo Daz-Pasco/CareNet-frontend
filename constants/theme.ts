@@ -5,25 +5,40 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// CareNet Brand Colors
+const primaryColor = '#E62117'; // Red from the logo
+const primaryHoverColor = '#C41C13';
 
 export const Colors = {
+  // Brand colors
+  primary: primaryColor,
+  primaryHover: primaryHoverColor,
+  
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
+    text: '#1F2937',
+    textMuted: '#6B7280',
+    background: '#F9FAFB',
+    surface: '#FFFFFF',
+    tint: primaryColor,
     icon: '#687076',
     tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    tabIconSelected: primaryColor,
+    border: '#E5E7EB',
+    redLight: '#FEE2E2', // red-100
+    redLighter: '#FEF2F2', // red-50
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
+    text: '#F3F4F6',
+    textMuted: '#9CA3AF',
+    background: '#18181B',
+    surface: '#27272A',
+    tint: primaryColor,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: primaryColor,
+    border: '#3F3F46',
+    redLight: 'rgba(127, 29, 29, 0.2)', // red-900/20
+    redLighter: 'rgba(127, 29, 29, 0.1)', // red-900/10
   },
 };
 
