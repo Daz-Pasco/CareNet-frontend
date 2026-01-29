@@ -130,7 +130,7 @@ export default function OnboardingScreen5({ colorScheme }: Props) {
                     },
                 ]}
             >
-                {/* Main circle with icons */}
+                {/* Main circle with icon */}
                 <View
                     style={[
                         styles.mainCircle,
@@ -140,20 +140,10 @@ export default function OnboardingScreen5({ colorScheme }: Props) {
                         },
                     ]}
                 >
-                    {/* Background folder icon */}
-                    <MaterialIcons
-                        name="folder-shared"
-                        size={100}
-                        color={colors.redLight}
-                        style={styles.backgroundIcon}
-                    />
-
-                    {/* Foreground groups icon */}
                     <MaterialIcons
                         name="groups"
-                        size={48}
+                        size={80}
                         color={Colors.primary}
-                        style={styles.foregroundIcon}
                     />
                 </View>
 
@@ -189,10 +179,10 @@ export default function OnboardingScreen5({ colorScheme }: Props) {
                 ]}
             >
                 <Text style={[styles.title, { color: colors.text }]}>
-                    Condividi con medici e familiari
+                    Condividi con <Text style={styles.titleHighlight}>medici</Text> e <Text style={styles.titleHighlight}>familiari</Text>
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
-                    Invita professionisti sanitari e invia report periodici automatici via email.
+                    Invita professionisti sanitari e invia <Text style={styles.descHighlight}>report periodici</Text> automatici via email.
                 </Text>
             </Animated.View>
         </View>
@@ -284,6 +274,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    folderIcon: {
+        position: 'absolute',
+    },
+    peopleContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        marginTop: 10,
+    },
+    centerPerson: {
+        marginHorizontal: -8,
+    },
     textContainer: {
         alignItems: 'center',
         maxWidth: 320,
@@ -299,5 +301,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: 'center',
         lineHeight: 24,
+    },
+    titleHighlight: {
+        color: Colors.primary,
+    },
+    descHighlight: {
+        color: Colors.primary,
+        fontWeight: '600',
     },
 });

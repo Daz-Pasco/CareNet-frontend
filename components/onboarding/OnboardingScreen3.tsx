@@ -196,7 +196,7 @@ export default function OnboardingScreen3({ colorScheme }: Props) {
                     <MaterialIcons
                         name="auto-awesome"
                         size={24}
-                        color="#FACC15"
+                        color={Colors.primary}
                     />
                 </Animated.View>
             </Animated.View>
@@ -212,10 +212,10 @@ export default function OnboardingScreen3({ colorScheme }: Props) {
                 ]}
             >
                 <Text style={[styles.title, { color: colors.text }]}>
-                    Ricevi alert intelligenti
+                    Ricevi <Text style={styles.titleHighlight}>alert</Text> intelligenti
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
-                    Il sistema impara le abitudini e ti avvisa solo quando qualcosa non va davvero.
+                    Il sistema impara le abitudini e ti avvisa solo quando <Text style={styles.descHighlight}>qualcosa non va</Text> davvero.
                 </Text>
             </Animated.View>
         </View>
@@ -319,5 +319,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: 'center',
         lineHeight: 24,
+    },
+    titleHighlight: {
+        color: Colors.primary,
+    },
+    descHighlight: {
+        color: Colors.primary,
+        fontWeight: '600',
     },
 });

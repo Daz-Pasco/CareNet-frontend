@@ -137,10 +137,10 @@ export default function OnboardingScreen4({ colorScheme }: Props) {
                 ]}
             >
                 <Text style={[styles.title, { color: colors.text }]}>
-                    Gestisci farmaci e{'\n'}appuntamenti
+                    Gestisci <Text style={styles.titleHighlight}>farmaci</Text> e{'\n'}<Text style={styles.titleHighlight}>appuntamenti</Text>
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
-                    Promemoria automatici per medicine e visite mediche, con conferme dall'anziano.
+                    Promemoria <Text style={styles.descHighlight}>automatici</Text> per medicine e visite mediche, con conferme dall'anziano.
                 </Text>
             </Animated.View>
         </View>
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: -8,
         right: -8,
-        backgroundColor: '#22C55E',
+        backgroundColor: Colors.primary,
         borderRadius: 999,
         padding: 4,
         borderWidth: 2,
@@ -247,5 +247,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
         paddingHorizontal: 8,
+    },
+    titleHighlight: {
+        color: Colors.primary,
+    },
+    descHighlight: {
+        color: Colors.primary,
+        fontWeight: '600',
     },
 });

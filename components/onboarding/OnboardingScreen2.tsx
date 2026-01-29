@@ -138,7 +138,7 @@ export default function OnboardingScreen2({ colorScheme }: Props) {
                     <MaterialIcons
                         name="notifications-active"
                         size={28}
-                        color="#22C55E"
+                        color={Colors.primary}
                     />
                 </View>
             </View>
@@ -146,10 +146,10 @@ export default function OnboardingScreen2({ colorScheme }: Props) {
             {/* Text content */}
             <View style={styles.textContainer}>
                 <Text style={[styles.title, { color: colors.text }]}>
-                    Rileva cadute e emergenze
+                    Rileva <Text style={styles.titleHighlight}>cadute</Text> e <Text style={styles.titleHighlight}>emergenze</Text>
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
-                    Se viene rilevata una caduta, notifichiamo immediatamente te e i servizi di emergenza.
+                    Se viene rilevata una caduta, notifichiamo <Text style={styles.descHighlight}>immediatamente</Text> te e i servizi di emergenza.
                 </Text>
             </View>
         </Animated.View>
@@ -239,5 +239,12 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center',
         lineHeight: 28,
+    },
+    titleHighlight: {
+        color: Colors.primary,
+    },
+    descHighlight: {
+        color: Colors.primary,
+        fontWeight: '600',
     },
 });

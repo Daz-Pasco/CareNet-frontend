@@ -54,13 +54,14 @@ export default function Onboarding() {
         if (currentIndex < slides.length - 1) {
             flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
         } else {
-            // TODO: Navigate to main app when tabs are implemented
-            // For now, stay on the last slide
+            // Navigate to login screen after last onboarding slide
+            router.replace('/auth' as any);
         }
     };
 
     const skipOnboarding = () => {
-        // TODO: Navigate to main app when tabs are implemented
+        // Skip onboarding and go to login screen
+        router.replace('/auth' as any);
     };
 
     const renderItem = ({ item }: { item: OnboardingSlide }) => {
