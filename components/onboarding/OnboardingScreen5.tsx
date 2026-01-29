@@ -3,51 +3,90 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import {
     Animated,
-    Dimensions,
     Image,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
-
 interface Props {
     colorScheme: 'light' | 'dark';
 }
 
 export default function OnboardingScreen5({ colorScheme }: Props) {
-    const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const colors = Colors[colorScheme];
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(20)).current;
-    const pulseAnim = useRef(new Animated.Value(1)).current;
+    const slideUpOpacity = useRef(new Animated.Value(0)).current;
+    const bounceAnim = useRef(new Animated.Value(0)).current;
+    const bgPulse1 = useRef(new Animated.Value(0.5)).current;
+    const bgPulse2 = useRef(new Animated.Value(0.5)).current;
 
     useEffect(() => {
-        // Fade in and slide up animation
+        // Fade in for logo
+        Animated.timing(fadeIn, {
+            toValue: 1,
+            duration: 1200,
+            useNativeDriver: true,
+        }).start();
+
+        // Slide up animation
         Animated.parallel([
-            Animated.timing(fadeIn, {
-                toValue: 1,
-                duration: 600,
-                useNativeDriver: true,
-            }),
             Animated.timing(slideUp, {
                 toValue: 0,
-                duration: 600,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideUpOpacity, {
+                toValue: 1,
+                duration: 1000,
                 useNativeDriver: true,
             }),
         ]).start();
 
-        // Pulse animation for decorative blur
+        // Bounce animation for inbox badge
         Animated.loop(
             Animated.sequence([
-                Animated.timing(pulseAnim, {
-                    toValue: 1.1,
-                    duration: 2000,
+                Animated.timing(bounceAnim, {
+                    toValue: -10,
+                    duration: 1500,
                     useNativeDriver: true,
                 }),
-                Animated.timing(pulseAnim, {
-                    toValue: 1,
-                    duration: 2000,
+                Animated.timing(bounceAnim, {
+                    toValue: 0,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(bgPulse1, {
+                    toValue: 0.7,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(bgPulse1, {
+                    toValue: 0.5,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+
+        Animated.loop(
+            Animated.sequence([
+                Animated.delay(1500),
+                Animated.timing(bgPulse2, {
+                    toValue: 0.7,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(bgPulse2, {
+                    toValue: 0.5,
+                    duration: 1500,
                     useNativeDriver: true,
                 }),
             ])
@@ -55,119 +94,108 @@ export default function OnboardingScreen5({ colorScheme }: Props) {
     }, []);
 
     return (
-        <Animated.View
-            style={[
-                styles.container,
-                {
-                    opacity: fadeIn,
-                    transform: [{ translateY: slideUp }],
-                },
-            ]}
-        >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs */}
+            <Animated.View
+                style={[
+                    styles.decorativeBlur,
+                    styles.topBlur,
+                    { backgroundColor: colors.redLight, opacity: bgPulse1 },
+                ]}
+            />
+            <Animated.View
+                style={[
+                    styles.decorativeBlur,
+                    styles.bottomBlur,
+                    { backgroundColor: colors.redLighter, opacity: bgPulse2 },
+                ]}
+            />
+
             {/* Logo */}
-            <View style={[styles.logoContainer, { backgroundColor: colorScheme === 'dark' ? colors.surface : '#FFFFFF' }]}>
+            <Animated.View style={[styles.logoContainer, { opacity: fadeIn }]}>
                 <Image
                     source={require('@/assets/images/icon.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
-            </View>
+            </Animated.View>
 
-            {/* Main card illustration */}
-            <View style={styles.illustrationContainer}>
-                {/* Decorative blurs */}
-                <Animated.View
-                    style={[
-                        styles.decorativeBlur,
-                        styles.topRightBlur,
-                        {
-                            backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
-                            transform: [{ scale: pulseAnim }],
-                        },
-                    ]}
-                />
+            {/* Main illustration */}
+            <Animated.View
+                style={[
+                    styles.illustrationContainer,
+                    {
+                        transform: [{ translateY: slideUp }],
+                        opacity: slideUpOpacity,
+                    },
+                ]}
+            >
+                {/* Main circle with icons */}
                 <View
                     style={[
-                        styles.decorativeBlur,
-                        styles.bottomLeftBlur,
-                        { backgroundColor: colorScheme === 'dark' ? 'rgba(251, 146, 60, 0.2)' : '#ffedd5' },
-                    ]}
-                />
-
-                {/* Main card */}
-                <View
-                    style={[
-                        styles.mainCard,
+                        styles.mainCircle,
                         {
                             backgroundColor: colors.surface,
-                            borderColor: colorScheme === 'dark' ? '#1f2937' : '#f3f4f6',
+                            borderColor: colors.border,
                         },
                     ]}
                 >
-                    {/* Icons grid */}
-                    <View style={styles.iconsGrid}>
-                        {/* Medical icon */}
-                        <View style={styles.iconColumn}>
-                            <View style={[styles.iconCircle, { backgroundColor: colorScheme === 'dark' ? 'rgba(59, 130, 246, 0.2)' : '#eff6ff' }]}>
-                                <MaterialIcons
-                                    name="medical-services"
-                                    size={24}
-                                    color={colorScheme === 'dark' ? '#60a5fa' : '#2563eb'}
-                                />
-                            </View>
-                            <Text style={[styles.iconLabel, { color: colors.textMuted }]}>Medici</Text>
-                        </View>
+                    {/* Background folder icon */}
+                    <MaterialIcons
+                        name="folder-shared"
+                        size={100}
+                        color={colors.redLight}
+                        style={styles.backgroundIcon}
+                    />
 
-                        {/* Family icon */}
-                        <View style={styles.iconColumn}>
-                            <View style={[styles.iconCircle, { backgroundColor: colorScheme === 'dark' ? 'rgba(34, 197, 94, 0.2)' : '#f0fdf4' }]}>
-                                <MaterialIcons
-                                    name="family-restroom"
-                                    size={24}
-                                    color={colorScheme === 'dark' ? '#4ade80' : '#16a34a'}
-                                />
-                            </View>
-                            <Text style={[styles.iconLabel, { color: colors.textMuted }]}>Famiglia</Text>
-                        </View>
-                    </View>
-
-                    {/* Divider */}
-                    <View style={styles.dividerContainer}>
-                        <View style={[styles.divider, { backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb' }]} />
-                    </View>
-
-                    {/* Email notification card */}
-                    <View
-                        style={[
-                            styles.emailCard,
-                            {
-                                backgroundColor: colors.background,
-                                borderColor: colorScheme === 'dark' ? '#374151' : '#f3f4f6',
-                            },
-                        ]}
-                    >
-                        <View style={[styles.emailIconBox, { backgroundColor: Colors.primary + '1A' }]}>
-                            <MaterialIcons name="mark-email-read" size={20} color={Colors.primary} />
-                        </View>
-                        <View style={styles.emailTextContainer}>
-                            <View style={[styles.emailLine, { backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb' }]} />
-                            <View style={[styles.emailLineShort, { backgroundColor: colorScheme === 'dark' ? '#1f2937' : '#f3f4f6' }]} />
-                        </View>
-                        <MaterialIcons name="check-circle" size={18} color="#22c55e" />
-                    </View>
+                    {/* Foreground groups icon */}
+                    <MaterialIcons
+                        name="groups"
+                        size={48}
+                        color={Colors.primary}
+                        style={styles.foregroundIcon}
+                    />
                 </View>
-            </View>
+
+                {/* Bouncing inbox badge */}
+                <Animated.View
+                    style={[
+                        styles.inboxBadgeContainer,
+                        {
+                            backgroundColor: colors.surface,
+                            borderColor: colors.border,
+                            transform: [{ translateY: bounceAnim }],
+                        },
+                    ]}
+                >
+                    <View style={styles.inboxBadge}>
+                        <MaterialIcons
+                            name="forward-to-inbox"
+                            size={28}
+                            color="#FFFFFF"
+                        />
+                    </View>
+                </Animated.View>
+            </Animated.View>
 
             {/* Text content */}
-            <View style={styles.textContainer}>
+            <Animated.View
+                style={[
+                    styles.textContainer,
+                    {
+                        transform: [{ translateY: slideUp }],
+                        opacity: slideUpOpacity,
+                    },
+                ]}
+            >
                 <Text style={[styles.title, { color: colors.text }]}>
-                    Condividi con medici{'\n'}e familiari
+                    Condividi con medici e familiari
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
-                    Invita professionisti sanitari e invia report periodici automatici via email per mantenere tutti aggiornati.
+                    Invita professionisti sanitari e invia report periodici automatici via email.
                 </Text>
-            </View>
-        </Animated.View>
+            </Animated.View>
+        </View>
     );
 }
 
@@ -178,115 +206,83 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 24,
     },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+    },
+    topBlur: {
+        top: '-10%',
+        right: '-10%',
+        width: 256,
+        height: 256,
+    },
+    bottomBlur: {
+        bottom: '-10%',
+        left: '-10%',
+        width: 320,
+        height: 320,
+    },
     logoContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 16,
-        elevation: 6,
-        padding: 16,
+        width: 80,
+        height: 80,
+        marginBottom: 40,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.15,
+        shadowRadius: 15,
+        elevation: 8,
     },
     logo: {
         width: '100%',
         height: '100%',
     },
     illustrationContainer: {
-        width: width * 0.85,
-        maxWidth: 320,
-        aspectRatio: 1,
+        position: 'relative',
+        marginBottom: 40,
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'relative',
-        marginBottom: 32,
     },
-    decorativeBlur: {
-        position: 'absolute',
-        borderRadius: 999,
-        opacity: 0.8,
-    },
-    topRightBlur: {
-        top: 0,
-        right: 0,
+    mainCircle: {
         width: 192,
         height: 192,
-    },
-    bottomLeftBlur: {
-        bottom: 0,
-        left: 0,
-        width: 160,
-        height: 160,
-    },
-    mainCard: {
-        width: '100%',
-        padding: 24,
-        borderRadius: 16,
+        borderRadius: 96,
+        alignItems: 'center',
+        justifyContent: 'center',
         borderWidth: 1,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-        elevation: 10,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.1,
+        shadowRadius: 16,
+        elevation: 8,
     },
-    iconsGrid: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 48,
-        marginBottom: 24,
+    backgroundIcon: {
+        position: 'absolute',
+        transform: [{ scale: 1.25 }],
     },
-    iconColumn: {
-        alignItems: 'center',
-        gap: 8,
+    foregroundIcon: {
+        zIndex: 10,
     },
-    iconCircle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    iconLabel: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    dividerContainer: {
-        marginBottom: 24,
-        alignItems: 'center',
-    },
-    divider: {
-        width: '100%',
-        height: 1,
-    },
-    emailCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 12,
+    inboxBadgeContainer: {
+        position: 'absolute',
+        bottom: -8,
+        right: -8,
+        padding: 6,
+        borderRadius: 999,
         borderWidth: 1,
-        gap: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 10,
+        zIndex: 20,
     },
-    emailIconBox: {
-        padding: 8,
-        borderRadius: 8,
-    },
-    emailTextContainer: {
-        flex: 1,
-        gap: 6,
-    },
-    emailLine: {
-        height: 8,
-        width: 96,
-        borderRadius: 4,
-    },
-    emailLineShort: {
-        height: 6,
-        width: 64,
-        borderRadius: 3,
+    inboxBadge: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: Colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     textContainer: {
         alignItems: 'center',
@@ -294,14 +290,14 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     title: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: 'bold',
         textAlign: 'center',
-        lineHeight: 32,
+        letterSpacing: -0.5,
     },
     description: {
         fontSize: 16,
         textAlign: 'center',
-        lineHeight: 26,
+        lineHeight: 24,
     },
 });

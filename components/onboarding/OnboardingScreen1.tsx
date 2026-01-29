@@ -21,20 +21,28 @@ export default function OnboardingScreen1({ colorScheme }: Props) {
     const pulseAnim = useRef(new Animated.Value(1)).current;
     const pingAnim = useRef(new Animated.Value(0)).current;
     const fadeIn = useRef(new Animated.Value(0)).current;
+    const slideDown = useRef(new Animated.Value(-20)).current;
 
     useEffect(() => {
-        // Fade in animation
-        Animated.timing(fadeIn, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-        }).start();
+        // Fade in and slide down animation for logo
+        Animated.parallel([
+            Animated.timing(fadeIn, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideDown, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
 
         // Pulse animation for heart icon
         Animated.loop(
             Animated.sequence([
                 Animated.timing(pulseAnim, {
-                    toValue: 1.1,
+                    toValue: 1.15,
                     duration: 800,
                     useNativeDriver: true,
                 }),
@@ -70,11 +78,11 @@ export default function OnboardingScreen1({ colorScheme }: Props) {
 
     const pingOpacity = pingAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [0.3, 0],
+        outputRange: [0.2, 0],
     });
 
     return (
-        <Animated.View style={[styles.container, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.container, { backgroundColor: colors.background, opacity: fadeIn }]}>
             {/* Background decorative blurs */}
             <View
                 style={[
@@ -91,19 +99,27 @@ export default function OnboardingScreen1({ colorScheme }: Props) {
                 ]}
             />
 
-            {/* Logo */}
-            <View style={[styles.logoContainer, { backgroundColor: colors.surface }]}>
+            {/* Logo with slide down animation */}
+            <Animated.View
+                style={[
+                    styles.logoContainer,
+                    {
+                        backgroundColor: colors.surface,
+                        transform: [{ translateY: slideDown }],
+                    }
+                ]}
+            >
                 <Image
                     source={require('@/assets/images/icon.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
-            </View>
+            </Animated.View>
 
             {/* Main circular illustration */}
             <View style={styles.illustrationContainer}>
                 {/* Outer ring */}
-                <View style={[styles.outerRing, { borderColor: colors.redLighter }]}>
+                <View style={[styles.outerRing, { borderColor: colors.redLight }]}>
                     {/* Middle circle */}
                     <View
                         style={[styles.middleCircle, { backgroundColor: colors.redLighter }]}
@@ -113,7 +129,7 @@ export default function OnboardingScreen1({ colorScheme }: Props) {
                             style={[
                                 styles.pingRing,
                                 {
-                                    borderColor: Colors.primary,
+                                    borderColor: `${Colors.primary}33`,
                                     transform: [{ scale: pingScale }],
                                     opacity: pingOpacity,
                                 },
@@ -150,7 +166,7 @@ export default function OnboardingScreen1({ colorScheme }: Props) {
                             />
                         </View>
 
-                        {/* Center heart icon */}
+                        {/* Center heart icon with pulse */}
                         <Animated.View
                             style={[
                                 styles.centerIcon,
@@ -213,9 +229,9 @@ const styles = StyleSheet.create({
         height: 192,
     },
     logoContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 128,
+        height: 128,
+        borderRadius: 64,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 32,
@@ -231,26 +247,26 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     illustrationContainer: {
-        width: width * 0.75,
-        height: width * 0.75,
-        maxWidth: 300,
-        maxHeight: 300,
+        width: width * 0.8,
+        height: width * 0.8,
+        maxWidth: 320,
+        maxHeight: 320,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 32,
     },
     outerRing: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 999,
+        width: 256,
+        height: 256,
+        borderRadius: 128,
         borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
     middleCircle: {
-        width: '75%',
-        height: '75%',
-        borderRadius: 999,
+        width: 192,
+        height: 192,
+        borderRadius: 96,
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
@@ -268,7 +284,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.08,
         shadowRadius: 8,
         elevation: 4,
     },
@@ -301,14 +317,14 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         alignItems: 'center',
-        maxWidth: 320,
+        maxWidth: 340,
         gap: 16,
     },
     title: {
-        fontSize: 28,
+        fontSize: 30,
         fontWeight: 'bold',
         textAlign: 'center',
-        lineHeight: 36,
+        lineHeight: 40,
     },
     titleHighlight: {
         color: Colors.primary,

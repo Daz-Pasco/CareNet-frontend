@@ -13,9 +13,9 @@ import {
     Text,
     TouchableOpacity,
     View,
-    ViewToken,
-    useColorScheme,
+    ViewToken
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -30,15 +30,15 @@ const slides: OnboardingSlide[] = [
     { id: '3', component: OnboardingScreen3 },
     { id: '4', component: OnboardingScreen4 },
     { id: '5', component: OnboardingScreen5 },
-    // Add more screens here as they are created
 ];
 
 export default function Onboarding() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef<FlatList>(null);
     const router = useRouter();
-    const colorScheme = useColorScheme() ?? 'light';
-    const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const insets = useSafeAreaInsets();
+    const colorScheme = 'light'; // Force light mode for onboarding
+    const colors = Colors.light;
 
     const viewableItemsChanged = useRef(
         ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -92,6 +92,16 @@ export default function Onboarding() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Header with Skip button */}
+            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+                <View style={styles.headerSpacer} />
+                <TouchableOpacity onPress={skipOnboarding} style={styles.skipButton}>
+                    <Text style={[styles.skipText, { color: colors.textMuted }]}>
+                        Salta
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
             <FlatList
                 ref={flatListRef}
                 data={slides}
@@ -103,6 +113,7 @@ export default function Onboarding() {
                 keyExtractor={(item) => item.id}
                 onViewableItemsChanged={viewableItemsChanged}
                 viewabilityConfig={viewConfig}
+                style={styles.flatList}
             />
 
             <View style={[styles.footer, { backgroundColor: colors.background }]}>
@@ -116,12 +127,6 @@ export default function Onboarding() {
                     <Text style={styles.nextButtonText}>Avanti</Text>
                     <Text style={styles.nextButtonIcon}>→</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={skipOnboarding}>
-                    <Text style={[styles.skipText, { color: colors.textMuted }]}>
-                        Salta introduzione
-                    </Text>
-                </TouchableOpacity>
             </View>
         </View>
     );
@@ -129,6 +134,32 @@ export default function Onboarding() {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingBottom: 8,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+    },
+    headerSpacer: {
+        flex: 1,
+    },
+    skipButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+    },
+    skipText: {
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    flatList: {
         flex: 1,
     },
     slide: {
@@ -174,9 +205,5 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 18,
         fontWeight: '600',
-    },
-    skipText: {
-        fontSize: 14,
-        fontWeight: '500',
     },
 });

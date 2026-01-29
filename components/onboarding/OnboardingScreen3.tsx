@@ -3,42 +3,57 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import {
     Animated,
-    Dimensions,
     Image,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
-
 interface Props {
     colorScheme: 'light' | 'dark';
 }
 
 export default function OnboardingScreen3({ colorScheme }: Props) {
-    const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const colors = Colors[colorScheme];
     const fadeIn = useRef(new Animated.Value(0)).current;
-    const bounceAnim1 = useRef(new Animated.Value(0)).current;
-    const bounceAnim2 = useRef(new Animated.Value(0)).current;
+    const slideUp = useRef(new Animated.Value(20)).current;
+    const slideUpOpacity = useRef(new Animated.Value(0)).current;
+    const bounceAnim = useRef(new Animated.Value(0)).current;
+    const sparkPulse = useRef(new Animated.Value(0.8)).current;
+    const bgPulse1 = useRef(new Animated.Value(0.4)).current;
+    const bgPulse2 = useRef(new Animated.Value(0.4)).current;
 
     useEffect(() => {
-        // Fade in animation
+        // Fade in for logo
         Animated.timing(fadeIn, {
             toValue: 1,
             duration: 800,
             useNativeDriver: true,
         }).start();
 
-        // Bounce animation for check icon
+        // Slide up animation
+        Animated.parallel([
+            Animated.timing(slideUp, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideUpOpacity, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+
+        // Bounce animation for shield badge
         Animated.loop(
             Animated.sequence([
-                Animated.timing(bounceAnim1, {
+                Animated.timing(bounceAnim, {
                     toValue: -8,
                     duration: 1500,
                     useNativeDriver: true,
                 }),
-                Animated.timing(bounceAnim1, {
+                Animated.timing(bounceAnim, {
                     toValue: 0,
                     duration: 1500,
                     useNativeDriver: true,
@@ -46,139 +61,164 @@ export default function OnboardingScreen3({ colorScheme }: Props) {
             ])
         ).start();
 
-        // Bounce animation for notification icon (delayed)
-        setTimeout(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(bounceAnim2, {
-                        toValue: -8,
-                        duration: 2000,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(bounceAnim2, {
-                        toValue: 0,
-                        duration: 2000,
-                        useNativeDriver: true,
-                    }),
-                ])
-            ).start();
-        }, 1500);
+        // Spark pulse animation
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(sparkPulse, {
+                    toValue: 1,
+                    duration: 1000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(sparkPulse, {
+                    toValue: 0.8,
+                    duration: 1000,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(bgPulse1, {
+                    toValue: 0.6,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(bgPulse1, {
+                    toValue: 0.4,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+
+        Animated.loop(
+            Animated.sequence([
+                Animated.delay(1500),
+                Animated.timing(bgPulse2, {
+                    toValue: 0.6,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(bgPulse2, {
+                    toValue: 0.4,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
     }, []);
 
     return (
-        <Animated.View style={[styles.container, { opacity: fadeIn }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs */}
+            <Animated.View
+                style={[
+                    styles.decorativeBlur,
+                    styles.topBlur,
+                    { backgroundColor: colors.redLight, opacity: bgPulse1 },
+                ]}
+            />
+            <Animated.View
+                style={[
+                    styles.decorativeBlur,
+                    styles.bottomBlur,
+                    { backgroundColor: colors.redLighter, opacity: bgPulse2 },
+                ]}
+            />
+
             {/* Logo */}
-            <View style={styles.logoContainer}>
+            <Animated.View style={[styles.logoContainer, { opacity: fadeIn }]}>
                 <Image
                     source={require('@/assets/images/icon.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
-            </View>
+            </Animated.View>
 
-            {/* Main card illustration */}
-            <View style={styles.illustrationContainer}>
-                {/* Background blur */}
+            {/* Main illustration */}
+            <Animated.View
+                style={[
+                    styles.illustrationContainer,
+                    {
+                        transform: [{ translateY: slideUp }],
+                        opacity: slideUpOpacity,
+                    },
+                ]}
+            >
+                {/* Main circle with lightbulb */}
                 <View
                     style={[
-                        styles.backgroundBlur,
-                        { backgroundColor: Colors.primary + (colorScheme === 'dark' ? '33' : '1A') },
-                    ]}
-                />
-
-                {/* Main card */}
-                <View
-                    style={[
-                        styles.mainCard,
+                        styles.mainCircle,
                         {
                             backgroundColor: colors.surface,
-                            borderColor: colorScheme === 'dark' ? '#3f3f46' : '#f3f4f6',
+                            borderColor: colors.redLighter,
                         },
                     ]}
                 >
-                    {/* Appointment row */}
-                    <View style={[styles.cardRow, styles.cardRowBorder, { borderColor: colorScheme === 'dark' ? '#3f3f46' : '#f3f4f6' }]}>
-                        <View style={[styles.iconBox, { backgroundColor: colorScheme === 'dark' ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe' }]}>
-                            <MaterialIcons
-                                name="event"
-                                size={24}
-                                color={colorScheme === 'dark' ? '#60a5fa' : '#2563eb'}
-                            />
-                        </View>
-                        <View style={styles.cardTextContainer}>
-                            <Text style={[styles.cardTitle, { color: colors.text }]}>
-                                Visita Cardiologica
-                            </Text>
-                            <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
-                                Domani, 10:00
-                            </Text>
-                        </View>
-                    </View>
+                    {/* Gradient overlay */}
+                    <View style={[styles.gradientOverlay, { backgroundColor: colors.redLighter }]} />
 
-                    {/* Medication row */}
-                    <View style={styles.cardRow}>
-                        <View style={[styles.iconBox, { backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2' }]}>
-                            <MaterialIcons
-                                name="medication"
-                                size={24}
-                                color={Colors.primary}
-                            />
-                        </View>
-                        <View style={styles.cardTextContainer}>
-                            <Text style={[styles.cardTitle, { color: colors.text }]}>
-                                Aspirina
-                            </Text>
-                            <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
-                                1 compressa dopo pranzo
-                            </Text>
-                        </View>
-                        <View style={styles.checkboxOuter}>
-                            <View style={styles.checkboxInner} />
-                        </View>
-                    </View>
+                    <MaterialIcons
+                        name="lightbulb"
+                        size={80}
+                        color={Colors.primary}
+                        style={styles.mainIcon}
+                    />
                 </View>
 
-                {/* Floating check icon */}
+                {/* Shield badge - bottom right */}
                 <Animated.View
                     style={[
-                        styles.floatingIcon,
-                        styles.floatingIconRight,
+                        styles.shieldBadge,
                         {
                             backgroundColor: colors.surface,
-                            borderColor: colorScheme === 'dark' ? '#3f3f46' : '#f3f4f6',
-                            transform: [{ translateY: bounceAnim1 }],
+                            borderColor: colors.border,
+                            transform: [{ translateY: bounceAnim }],
                         },
                     ]}
                 >
-                    <MaterialIcons name="check-circle" size={24} color="#22c55e" />
+                    <MaterialIcons
+                        name="health-and-safety"
+                        size={32}
+                        color={Colors.primary}
+                    />
                 </Animated.View>
 
-                {/* Floating notification icon */}
+                {/* Spark - top left */}
                 <Animated.View
                     style={[
-                        styles.floatingIcon,
-                        styles.floatingIconLeft,
-                        {
-                            backgroundColor: colors.surface,
-                            borderColor: colorScheme === 'dark' ? '#3f3f46' : '#f3f4f6',
-                            transform: [{ translateY: bounceAnim2 }],
-                        },
+                        styles.sparkContainer,
+                        { opacity: sparkPulse },
                     ]}
                 >
-                    <MaterialIcons name="notifications-active" size={24} color="#f59e0b" />
+                    <MaterialIcons
+                        name="auto-awesome"
+                        size={24}
+                        color="#FACC15"
+                    />
                 </Animated.View>
-            </View>
+            </Animated.View>
 
             {/* Text content */}
-            <View style={styles.textContainer}>
-                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#ffffff' : colors.text }]}>
-                    Gestisci farmaci e appuntamenti
+            <Animated.View
+                style={[
+                    styles.textContainer,
+                    {
+                        transform: [{ translateY: slideUp }],
+                        opacity: slideUpOpacity,
+                    },
+                ]}
+            >
+                <Text style={[styles.title, { color: colors.text }]}>
+                    Ricevi alert intelligenti
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
-                    Promemoria automatici per medicine e visite mediche, con conferme dall'anziano.
+                    Il sistema impara le abitudini e ti avvisa solo quando qualcosa non va davvero.
                 </Text>
-            </View>
-        </Animated.View>
+            </Animated.View>
+        </View>
     );
 }
 
@@ -187,119 +227,97 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
+        paddingHorizontal: 32,
+    },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+    },
+    topBlur: {
+        top: '-15%',
+        right: '-15%',
+        width: 320,
+        height: 320,
+    },
+    bottomBlur: {
+        bottom: '10%',
+        left: '-10%',
+        width: 256,
+        height: 256,
     },
     logoContainer: {
-        width: 100,
-        height: 100,
-        marginBottom: 32,
+        width: 48,
+        height: 48,
+        marginBottom: 40,
     },
     logo: {
         width: '100%',
         height: '100%',
     },
     illustrationContainer: {
-        width: width * 0.85,
-        maxWidth: 320,
-        aspectRatio: 1,
+        position: 'relative',
+        marginBottom: 40,
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'relative',
-        marginBottom: 32,
     },
-    backgroundBlur: {
-        position: 'absolute',
-        width: '75%',
-        height: '75%',
-        borderRadius: 999,
-        opacity: 0.6,
-    },
-    mainCard: {
-        width: 256,
-        padding: 24,
-        borderRadius: 16,
+    mainCircle: {
+        width: 192,
+        height: 192,
+        borderRadius: 96,
+        alignItems: 'center',
+        justifyContent: 'center',
         borderWidth: 1,
-        shadowColor: '#000',
+        shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.15,
-        shadowRadius: 20,
+        shadowRadius: 30,
         elevation: 10,
+    },
+    gradientOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        borderRadius: 96,
+        opacity: 0.3,
+    },
+    mainIcon: {
         zIndex: 10,
     },
-    cardRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
-    },
-    cardRowBorder: {
-        marginBottom: 16,
-        paddingBottom: 16,
-        borderBottomWidth: 1,
-    },
-    iconBox: {
-        padding: 12,
-        borderRadius: 12,
-    },
-    cardTextContainer: {
-        flex: 1,
-    },
-    cardTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginBottom: 2,
-    },
-    cardSubtitle: {
-        fontSize: 12,
-    },
-    checkboxOuter: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: Colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkboxInner: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: Colors.primary,
-    },
-    floatingIcon: {
+    shieldBadge: {
         position: 'absolute',
+        bottom: -8,
+        right: -8,
         padding: 12,
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
-        elevation: 5,
+        elevation: 6,
+        zIndex: 20,
     },
-    floatingIconRight: {
-        right: -16,
-        top: 40,
-    },
-    floatingIconLeft: {
-        left: -8,
-        bottom: 48,
+    sparkContainer: {
+        position: 'absolute',
+        top: 0,
+        left: -16,
     },
     textContainer: {
         alignItems: 'center',
-        maxWidth: 320,
+        maxWidth: 340,
         gap: 16,
     },
     title: {
-        fontSize: 28,
+        fontSize: 26,
         fontWeight: 'bold',
         textAlign: 'center',
-        lineHeight: 36,
         letterSpacing: -0.5,
     },
     description: {
-        fontSize: 18,
+        fontSize: 16,
         textAlign: 'center',
-        lineHeight: 28,
+        lineHeight: 24,
     },
 });

@@ -1,31 +1,29 @@
 import { Colors } from '@/constants/theme';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import {
     Animated,
-    Dimensions,
+    Image,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
 
 interface Props {
     colorScheme: 'light' | 'dark';
 }
 
 export default function OnboardingScreen2({ colorScheme }: Props) {
-    const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+    const colors = Colors[colorScheme];
+    const fadeIn = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(0.8)).current;
     const pulseOpacity = useRef(new Animated.Value(0.5)).current;
-    const fadeIn = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         // Fade in animation
         Animated.timing(fadeIn, {
             toValue: 1,
-            duration: 600,
+            duration: 800,
             useNativeDriver: true,
         }).start();
 
@@ -34,25 +32,35 @@ export default function OnboardingScreen2({ colorScheme }: Props) {
             Animated.parallel([
                 Animated.sequence([
                     Animated.timing(pulseAnim, {
-                        toValue: 1.4,
-                        duration: 2000,
+                        toValue: 0.8,
+                        duration: 0,
                         useNativeDriver: true,
                     }),
                     Animated.timing(pulseAnim, {
-                        toValue: 0.8,
-                        duration: 0,
+                        toValue: 1.1,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 1.4,
+                        duration: 1000,
                         useNativeDriver: true,
                     }),
                 ]),
                 Animated.sequence([
                     Animated.timing(pulseOpacity, {
-                        toValue: 0,
-                        duration: 2000,
+                        toValue: 0.5,
+                        duration: 0,
                         useNativeDriver: true,
                     }),
                     Animated.timing(pulseOpacity, {
-                        toValue: 0.5,
-                        duration: 0,
+                        toValue: 0.2,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseOpacity, {
+                        toValue: 0,
+                        duration: 1000,
                         useNativeDriver: true,
                     }),
                 ]),
@@ -61,72 +69,83 @@ export default function OnboardingScreen2({ colorScheme }: Props) {
     }, []);
 
     return (
-        <Animated.View style={[styles.container, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.container, { backgroundColor: colors.background, opacity: fadeIn }]}>
+            {/* Logo */}
+            <View style={styles.logoContainer}>
+                <Image
+                    source={require('@/assets/images/icon.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+            </View>
+
             {/* Main illustration */}
             <View style={styles.illustrationContainer}>
-                {/* Pulse ring */}
+                {/* Pulse ring - outer */}
                 <Animated.View
                     style={[
                         styles.pulseRing,
                         {
-                            backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
+                            backgroundColor: colors.redLight,
                             transform: [{ scale: pulseAnim }],
                             opacity: pulseOpacity,
                         },
                     ]}
                 />
 
-                {/* Inner circle */}
+                {/* Inner static circle */}
+                <View style={[styles.innerCircle, { backgroundColor: colors.redLighter }]} />
+
+                {/* Falling person icon */}
+                <View style={styles.mainIconContainer}>
+                    <MaterialIcons
+                        name="personal-injury"
+                        size={72}
+                        color={Colors.primary}
+                    />
+                </View>
+
+                {/* SOS Badge - right side */}
                 <View
                     style={[
-                        styles.innerCircle,
-                        { backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2' },
+                        styles.floatingBadge,
+                        styles.sosBadge,
+                        {
+                            backgroundColor: colors.surface,
+                            borderColor: colors.border,
+                        },
                     ]}
-                />
-
-                {/* Main falling icon */}
-                <View style={styles.mainIconContainer}>
-                    <MaterialCommunityIcons
-                        name="human-male"
-                        size={80}
+                >
+                    <MaterialIcons
+                        name="emergency"
+                        size={28}
                         color={Colors.primary}
-                        style={styles.fallingIcon}
                     />
+                    <Text style={styles.sosText}>SOS</Text>
+                </View>
 
-                    {/* SOS Card - right side */}
-                    <View
-                        style={[
-                            styles.floatingCard,
-                            styles.sosCard,
-                            {
-                                backgroundColor: colorScheme === 'dark' ? colors.surface : '#FFFFFF',
-                                borderColor: colorScheme === 'dark' ? '#1f2937' : '#f3f4f6',
-                            },
-                        ]}
-                    >
-                        <MaterialIcons name="home" size={28} color={Colors.primary} />
-                        <Text style={styles.sosText}>SOS</Text>
-                    </View>
-
-                    {/* Notification Card - left side */}
-                    <View
-                        style={[
-                            styles.floatingCard,
-                            styles.notificationCard,
-                            {
-                                backgroundColor: colorScheme === 'dark' ? colors.surface : '#FFFFFF',
-                                borderColor: colorScheme === 'dark' ? '#1f2937' : '#f3f4f6',
-                            },
-                        ]}
-                    >
-                        <MaterialIcons name="notifications-active" size={28} color="#22c55e" />
-                    </View>
+                {/* Notification badge - left side */}
+                <View
+                    style={[
+                        styles.floatingBadge,
+                        styles.notificationBadge,
+                        {
+                            backgroundColor: colors.surface,
+                            borderColor: colors.border,
+                        },
+                    ]}
+                >
+                    <MaterialIcons
+                        name="notifications-active"
+                        size={28}
+                        color="#22C55E"
+                    />
                 </View>
             </View>
 
             {/* Text content */}
             <View style={styles.textContainer}>
-                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#ffffff' : colors.text }]}>
+                <Text style={[styles.title, { color: colors.text }]}>
                     Rileva cadute e emergenze
                 </Text>
                 <Text style={[styles.description, { color: colors.textMuted }]}>
@@ -144,13 +163,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 24,
     },
+    logoContainer: {
+        width: 64,
+        height: 64,
+        marginBottom: 48,
+    },
+    logo: {
+        width: '100%',
+        height: '100%',
+    },
     illustrationContainer: {
         width: 256,
         height: 256,
-        marginBottom: 48,
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'relative',
+        marginBottom: 48,
     },
     pulseRing: {
         position: 'absolute',
@@ -165,15 +192,11 @@ const styles = StyleSheet.create({
         borderRadius: 64,
     },
     mainIconContainer: {
-        position: 'relative',
         zIndex: 10,
         alignItems: 'center',
-        justifyContent: 'center',
+        marginBottom: 8,
     },
-    fallingIcon: {
-        transform: [{ rotate: '30deg' }],
-    },
-    floatingCard: {
+    floatingBadge: {
         position: 'absolute',
         padding: 12,
         borderRadius: 16,
@@ -185,32 +208,31 @@ const styles = StyleSheet.create({
         elevation: 4,
         alignItems: 'center',
     },
-    sosCard: {
-        right: -48,
+    sosBadge: {
+        right: 16,
         top: '50%',
-        marginTop: -32,
-    },
-    notificationCard: {
-        left: -48,
-        bottom: 16,
+        transform: [{ translateY: -32 }],
     },
     sosText: {
         fontSize: 10,
         fontWeight: 'bold',
         color: Colors.primary,
-        marginTop: 4,
+        marginTop: 2,
+    },
+    notificationBadge: {
+        left: 16,
+        bottom: 48,
     },
     textContainer: {
         alignItems: 'center',
-        maxWidth: 320,
+        maxWidth: 340,
         gap: 16,
         paddingHorizontal: 16,
     },
     title: {
-        fontSize: 28,
+        fontSize: 30,
         fontWeight: 'bold',
         textAlign: 'center',
-        lineHeight: 36,
         letterSpacing: -0.5,
     },
     description: {
