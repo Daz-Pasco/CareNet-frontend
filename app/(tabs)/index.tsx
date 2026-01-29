@@ -1,98 +1,182 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import OnboardingScreen1 from '@/components/onboarding/OnboardingScreen1';
+import OnboardingScreen2 from '@/components/onboarding/OnboardingScreen2';
+import OnboardingScreen3 from '@/components/onboarding/OnboardingScreen3';
+import OnboardingScreen4 from '@/components/onboarding/OnboardingScreen4';
+import OnboardingScreen5 from '@/components/onboarding/OnboardingScreen5';
+import { Colors } from '@/constants/theme';
+import { useRouter } from 'expo-router';
+import React, { useRef, useState } from 'react';
+import {
+    Dimensions,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewToken,
+    useColorScheme,
+} from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const { width } = Dimensions.get('window');
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
+interface OnboardingSlide {
+    id: string;
+    component: React.ComponentType<{ colorScheme: 'light' | 'dark' }>;
+}
+
+const slides: OnboardingSlide[] = [
+    { id: '1', component: OnboardingScreen1 },
+    { id: '2', component: OnboardingScreen2 },
+    { id: '3', component: OnboardingScreen3 },
+    { id: '4', component: OnboardingScreen4 },
+    { id: '5', component: OnboardingScreen5 },
+    // Add more screens here as they are created
+];
+
+export default function Onboarding() {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const flatListRef = useRef<FlatList>(null);
+    const router = useRouter();
+    const colorScheme = useColorScheme() ?? 'light';
+    const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+
+    const viewableItemsChanged = useRef(
+        ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+            if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+                setCurrentIndex(viewableItems[0].index);
+            }
+        }
+    ).current;
+
+    const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+    const scrollToNext = () => {
+        if (currentIndex < slides.length - 1) {
+            flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
+        } else {
+            // Navigate to main app
+            router.replace('/(tabs)');
+        }
+    };
+
+    const skipOnboarding = () => {
+        router.replace('/(tabs)');
+    };
+
+    const renderItem = ({ item }: { item: OnboardingSlide }) => {
+        const SlideComponent = item.component;
+        return (
+            <View style={[styles.slide, { width }]}>
+                <SlideComponent colorScheme={colorScheme} />
+            </View>
+        );
+    };
+
+    const renderPagination = () => (
+        <View style={styles.pagination}>
+            {slides.map((_, index) => (
+                <View
+                    key={index}
+                    style={[
+                        styles.dot,
+                        {
+                            backgroundColor:
+                                index === currentIndex ? Colors.primary : colors.border,
+                            width: index === currentIndex ? 32 : 8,
+                        },
+                    ]}
+                />
+            ))}
+        </View>
+    );
+
+    return (
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <FlatList
+                ref={flatListRef}
+                data={slides}
+                renderItem={renderItem}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                bounces={false}
+                keyExtractor={(item) => item.id}
+                onViewableItemsChanged={viewableItemsChanged}
+                viewabilityConfig={viewConfig}
             />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+            <View style={[styles.footer, { backgroundColor: colors.background }]}>
+                {renderPagination()}
+
+                <TouchableOpacity
+                    style={styles.nextButton}
+                    onPress={scrollToNext}
+                    activeOpacity={0.9}
+                >
+                    <Text style={styles.nextButtonText}>Avanti</Text>
+                    <Text style={styles.nextButtonIcon}>→</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={skipOnboarding}>
+                    <Text style={[styles.skipText, { color: colors.textMuted }]}>
+                        Salta introduzione
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+    container: {
+        flex: 1,
+    },
+    slide: {
+        flex: 1,
+    },
+    footer: {
+        paddingHorizontal: 24,
+        paddingBottom: 40,
+        paddingTop: 16,
+        alignItems: 'center',
+        gap: 24,
+    },
+    pagination: {
+        flexDirection: 'row',
+        gap: 8,
+        alignItems: 'center',
+    },
+    dot: {
+        height: 8,
+        borderRadius: 4,
+    },
+    nextButton: {
+        width: '100%',
+        backgroundColor: Colors.primary,
+        paddingVertical: 18,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 8,
+    },
+    nextButtonText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    nextButtonIcon: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    skipText: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
 });
