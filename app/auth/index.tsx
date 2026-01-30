@@ -14,28 +14,40 @@ export default function AuthPage() {
     const handleGoogleLogin = async () => {
         try {
             setLoading(true);
-            
-            // 1. Get Google OAuth URL from API
+
+            // 1. Get Google OAuth URL from API (uses frontend:// deep link as callback)
             const response = await fetch(`${API_URL}/auth/login/google`);
             const data = await response.json();
-            
+
             if (!data.url) {
                 throw new Error('Failed to get Google login URL');
             }
-            
-            // 2. Open Google login in browser
+
+            // 2. Open Google login in browser with correct deep link scheme
+            // This must match the "scheme" in app.json which is "frontend"
             const result = await WebBrowser.openAuthSessionAsync(
                 data.url,
-                'carenet://' // Your app's deep link scheme
+                'frontend://auth/callback'
             );
-            
+
             if (result.type === 'success' && result.url) {
                 // 3. Extract the access token from the callback URL
-                // The token will be in the URL fragment after Supabase redirects
-                const url = new URL(result.url);
-                const accessToken = url.searchParams.get('access_token') || 
-                                   url.hash?.split('access_token=')[1]?.split('&')[0];
-                
+                // Supabase returns tokens in the URL fragment (hash) like:
+                // frontend://auth/callback#access_token=xxx&refresh_token=xxx&...
+                let accessToken: string | null = null;
+
+                // Try to get from hash fragment first (Supabase default)
+                if (result.url.includes('#')) {
+                    const hashParams = new URLSearchParams(result.url.split('#')[1]);
+                    accessToken = hashParams.get('access_token');
+                }
+
+                // Fallback to query params
+                if (!accessToken) {
+                    const url = new URL(result.url);
+                    accessToken = url.searchParams.get('access_token');
+                }
+
                 if (accessToken) {
                     // 4. Verify token with our API
                     const verifyResponse = await fetch(`${API_URL}/auth/verify`, {
@@ -43,9 +55,9 @@ export default function AuthPage() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ access_token: accessToken })
                     });
-                    
+
                     const userData = await verifyResponse.json();
-                    
+
                     if (userData.needs_onboarding) {
                         // New user - go to role selection
                         // TODO: Navigate to onboarding with user data
@@ -54,6 +66,8 @@ export default function AuthPage() {
                         // Existing user - go to home
                         router.replace('/(tabs)' as any);
                     }
+                } else {
+                    throw new Error('No access token received from authentication');
                 }
             }
         } catch (error) {
