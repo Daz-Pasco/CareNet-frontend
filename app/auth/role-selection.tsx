@@ -14,18 +14,22 @@ export default function RoleSelectionPage() {
     // Redirect if not logged in
     useEffect(() => {
         if (!session) {
-            router.replace('/auth');
+            router.replace('/auth' as any);
         }
     }, [session]);
 
     const handleRoleSelected = async (role: 'professional' | 'caregiver' | null) => {
         if (!role || !session) return;
 
-        try {
-            // Map role to API expected values
-            const apiRole = role === 'professional' ? 'professional' : 'family_supervisor';
+        // Navigate to the appropriate registration flow based on role
+        if (role === 'caregiver') {
+            // Family caregiver goes to personal info form
+            router.push('/auth/family-caregiver-info' as any);
+            return;
+        }
 
-            // Call API to complete profile
+        // Professional goes directly to complete profile (or their own flow later)
+        try {
             const response = await fetch(`${API_URL}/auth/complete-profile`, {
                 method: 'POST',
                 headers: {
@@ -34,7 +38,7 @@ export default function RoleSelectionPage() {
                 },
                 body: JSON.stringify({
                     full_name: session.user?.user_metadata?.full_name || session.user?.email || 'User',
-                    role: apiRole,
+                    role: 'professional',
                     phone: null,
                 }),
             });
