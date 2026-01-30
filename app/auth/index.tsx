@@ -1,6 +1,6 @@
 import LoginScreen from '@/components/auth/LoginScreen';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -14,7 +14,7 @@ export default function AuthPage() {
     useEffect(() => {
         if (!loading && session) {
             // After login, go to role selection
-            router.replace('/auth/role-selection' as any);
+            router.replace('/auth/role-selection' as Href);
         }
     }, [session, loading]);
 
@@ -33,7 +33,7 @@ export default function AuthPage() {
     };
 
     const handleBack = () => {
-        router.replace('/onboarding' as any);
+        router.replace('/onboarding' as Href);
     };
 
     return (

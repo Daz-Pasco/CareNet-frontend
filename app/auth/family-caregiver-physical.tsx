@@ -1,6 +1,6 @@
 import FamilyCaregiverPhysicalData, { PhysicalData } from '@/components/auth/FamilyCaregiverPhysicalData';
 import { useRegistration } from '@/contexts/RegistrationContext';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -20,7 +20,7 @@ export default function FamilyCaregiverPhysicalDataPage() {
             });
 
             // Navigate to next step (home address)
-            router.push('/auth/family-caregiver-address' as any);
+            router.push('/auth/family-caregiver-address' as Href);
         } catch (error) {
             console.error('Error saving physical data:', error);
             Alert.alert('Errore', 'Si è verificato un errore. Riprova.');

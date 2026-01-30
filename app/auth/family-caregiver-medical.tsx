@@ -1,6 +1,6 @@
 import FamilyCaregiverMedicalInfo, { MedicalInfoData } from '@/components/auth/FamilyCaregiverMedicalInfo';
 import { useRegistration } from '@/contexts/RegistrationContext';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -21,7 +21,7 @@ export default function FamilyCaregiverMedicalInfoPage() {
             });
 
             // Navigate to summary screen
-            router.push('/auth/family-caregiver-summary' as any);
+            router.push('/auth/family-caregiver-summary' as Href);
         } catch (error) {
             console.error('Error saving medical info:', error);
             Alert.alert('Errore', 'Si è verificato un errore. Riprova.');

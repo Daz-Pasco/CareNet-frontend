@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
@@ -18,9 +18,9 @@ export default function AuthCallback() {
     useEffect(() => {
         if (!loading) {
             if (session) {
-                router.replace('/auth/role-selection' as any);
+                router.replace('/auth/role-selection' as Href);
             } else {
-                router.replace('/auth');
+                router.replace('/auth' as Href);
             }
         }
     }, [session, loading]);

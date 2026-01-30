@@ -8,6 +8,8 @@ export default function AuthLayout() {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="callback" />
                 <Stack.Screen name="role-selection" />
+                <Stack.Screen name="professional-profile" />
+                <Stack.Screen name="profile-summary" />
                 <Stack.Screen name="family-caregiver-info" />
                 <Stack.Screen name="family-caregiver-physical" />
                 <Stack.Screen name="family-caregiver-address" />

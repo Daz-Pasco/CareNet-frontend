@@ -1,9 +1,11 @@
 import FamilyCaregiverSummary from '@/components/auth/FamilyCaregiverSummary';
 import { useRegistration } from '@/contexts/RegistrationContext';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function FamilyCaregiverSummaryPage() {
     const colorScheme = 'light';
@@ -28,19 +30,48 @@ export default function FamilyCaregiverSummaryPage() {
     };
 
     const handleConfirm = async () => {
+        if (!session) return;
+
         setIsSubmitting(true);
         try {
-            // TODO: Call API to complete registration with all data
-            console.log('Registration complete with data:', summaryData);
+            // Create user + elderly profile + medical info via API
+            const response = await fetch(`${API_URL}/auth/complete-caregiver`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                    full_name: summaryData.fullName,
+                    patient_phone: summaryData.patientPhone,
+                    caregiver_phone: summaryData.caregiverPhone,
+                    date_of_birth: summaryData.dateOfBirth,
+                    gender: summaryData.gender,
+                    height_cm: summaryData.heightCm,
+                    weight_kg: summaryData.weightKg,
+                    address: summaryData.address,
+                    allergies: summaryData.allergies,
+                    conditions: summaryData.conditions,
+                    medications: summaryData.medications,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                if (error.detail !== 'Profile already exists') {
+                    throw new Error(error.detail || 'Failed to create profile');
+                }
+            }
 
             // Reset registration data
             resetData();
 
             // Navigate to home
-            router.replace('/(tabs)' as any);
-        } catch (error) {
+            router.replace('/(tabs)' as Href);
+        } catch (error: unknown) {
             console.error('Error completing registration:', error);
-            Alert.alert('Errore', 'Si è verificato un errore. Riprova.');
+            const errorMessage = error instanceof Error ? error.message : 'Si è verificato un errore. Riprova.';
+            Alert.alert('Errore', errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -51,19 +82,19 @@ export default function FamilyCaregiverSummaryPage() {
     };
 
     const handleEditProfile = () => {
-        router.push('/auth/family-caregiver-info' as any);
+        router.push('/auth/family-caregiver-info' as Href);
     };
 
     const handleEditPhysical = () => {
-        router.push('/auth/family-caregiver-physical' as any);
+        router.push('/auth/family-caregiver-physical' as Href);
     };
 
     const handleEditAddress = () => {
-        router.push('/auth/family-caregiver-address' as any);
+        router.push('/auth/family-caregiver-address' as Href);
     };
 
     const handleEditMedical = () => {
-        router.push('/auth/family-caregiver-medical' as any);
+        router.push('/auth/family-caregiver-medical' as Href);
     };
 
     return (

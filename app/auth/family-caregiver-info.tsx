@@ -1,7 +1,7 @@
 import FamilyCaregiverPersonalInfo, { PersonalInfoData } from '@/components/auth/FamilyCaregiverPersonalInfo';
 import { useRegistration } from '@/contexts/RegistrationContext';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -15,7 +15,7 @@ export default function FamilyCaregiverPersonalInfoPage() {
     // Redirect if not logged in
     useEffect(() => {
         if (!session) {
-            router.replace('/auth' as any);
+            router.replace('/auth' as Href);
         }
     }, [session]);
 
@@ -34,7 +34,7 @@ export default function FamilyCaregiverPersonalInfoPage() {
             });
 
             // Navigate to physical data screen (step 2)
-            router.push('/auth/family-caregiver-physical' as any);
+            router.push('/auth/family-caregiver-physical' as Href);
         } catch (error) {
             console.error('Error saving personal info:', error);
             Alert.alert('Errore', 'Si è verificato un errore. Riprova.');

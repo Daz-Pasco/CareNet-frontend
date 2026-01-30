@@ -1,6 +1,6 @@
 import FamilyCaregiverAddress, { AddressData } from '@/components/auth/FamilyCaregiverAddress';
 import { useRegistration } from '@/contexts/RegistrationContext';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -17,7 +17,7 @@ export default function FamilyCaregiverAddressPage() {
             updateAddress(data.address);
 
             // Navigate to next step (medical info)
-            router.push('/auth/family-caregiver-medical' as any);
+            router.push('/auth/family-caregiver-medical' as Href);
         } catch (error) {
             console.error('Error saving address:', error);
             Alert.alert('Errore', 'Si è verificato un errore. Riprova.');
