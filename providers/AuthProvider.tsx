@@ -22,9 +22,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (error) {
+                console.warn('Session error, signing out:', error.message);
+                // Clear invalid session data
+                supabase.auth.signOut();
+                setSession(null);
+                setUser(null);
+            } else {
+                setSession(session);
+                setUser(session?.user ?? null);
+            }
+            setLoading(false);
+        }).catch((err) => {
+            console.error('Failed to get session:', err);
+            supabase.auth.signOut();
+            setSession(null);
+            setUser(null);
             setLoading(false);
         });
 

@@ -40,12 +40,34 @@ export default function FamilyCaregiverPhysicalData({
     const [height, setHeight] = useState(initialData?.heightCm || 170);
     const [weight, setWeight] = useState(initialData?.weightKg || 70);
 
-    // Animation refs
+    // Animation refs - Main
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(30)).current;
     const iconScale = useRef(new Animated.Value(0.8)).current;
 
+    // Staggered card animations
+    const card1Anim = useRef(new Animated.Value(0)).current;
+    const card1Slide = useRef(new Animated.Value(30)).current;
+    const card2Anim = useRef(new Animated.Value(0)).current;
+    const card2Slide = useRef(new Animated.Value(30)).current;
+
+    // Button animation
+    const buttonAnim = useRef(new Animated.Value(0)).current;
+    const buttonSlide = useRef(new Animated.Value(30)).current;
+
+    // Value change animations
+    const heightBounce = useRef(new Animated.Value(1)).current;
+    const weightBounce = useRef(new Animated.Value(1)).current;
+
+    // Background pulse
+    const pulseAnim1 = useRef(new Animated.Value(1)).current;
+    const pulseAnim2 = useRef(new Animated.Value(1)).current;
+
+    // Icon glow pulse
+    const glowPulse = useRef(new Animated.Value(1)).current;
+
     useEffect(() => {
+        // Main fade in
         Animated.parallel([
             Animated.timing(fadeIn, {
                 toValue: 1,
@@ -60,10 +82,70 @@ export default function FamilyCaregiverPhysicalData({
             Animated.spring(iconScale, {
                 toValue: 1,
                 friction: 4,
+                tension: 80,
                 useNativeDriver: true,
             }),
         ]).start();
+
+        // Staggered card animations
+        Animated.sequence([
+            Animated.delay(200),
+            Animated.parallel([
+                Animated.timing(card1Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(card1Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(350),
+            Animated.parallel([
+                Animated.timing(card2Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(card2Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Button entrance
+        Animated.sequence([
+            Animated.delay(500),
+            Animated.parallel([
+                Animated.timing(buttonAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(buttonSlide, { toValue: 0, friction: 6, tension: 60, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim1, { toValue: 1.1, duration: 2000, useNativeDriver: true }),
+                Animated.timing(pulseAnim1, { toValue: 1, duration: 2000, useNativeDriver: true }),
+            ])
+        ).start();
+
+        setTimeout(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim2, { toValue: 1.1, duration: 2000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim2, { toValue: 1, duration: 2000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, 1000);
+
+        // Icon glow pulse
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(glowPulse, { toValue: 1.15, duration: 1500, useNativeDriver: true }),
+                Animated.timing(glowPulse, { toValue: 1, duration: 1500, useNativeDriver: true }),
+            ])
+        ).start();
     }, []);
+
+    // Bounce animation when value changes
+    const animateValueChange = (bounceAnim: Animated.Value) => {
+        Animated.sequence([
+            Animated.timing(bounceAnim, { toValue: 1.15, duration: 100, useNativeDriver: true }),
+            Animated.spring(bounceAnim, { toValue: 1, friction: 4, tension: 200, useNativeDriver: true }),
+        ]).start();
+    };
 
     const handleContinue = () => {
         onContinue({
@@ -74,10 +156,12 @@ export default function FamilyCaregiverPhysicalData({
 
     const adjustHeight = (delta: number) => {
         setHeight(prev => Math.max(50, Math.min(250, prev + delta)));
+        animateValueChange(heightBounce);
     };
 
     const adjustWeight = (delta: number) => {
         setWeight(prev => Math.max(20, Math.min(300, prev + delta)));
+        animateValueChange(weightBounce);
     };
 
     const isFormValid = height > 0 && weight > 0;
@@ -86,6 +170,30 @@ export default function FamilyCaregiverPhysicalData({
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs with pulse */}
+            <View style={styles.backgroundBlurs}>
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.topBlur,
+                        {
+                            backgroundColor: colors.redLight,
+                            transform: [{ scale: pulseAnim1 }],
+                        },
+                    ]}
+                />
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.bottomBlur,
+                        {
+                            backgroundColor: colors.redLighter,
+                            transform: [{ scale: pulseAnim2 }],
+                        },
+                    ]}
+                />
+            </View>
+
             {/* Header */}
             <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
                 <Pressable
@@ -128,9 +236,17 @@ export default function FamilyCaregiverPhysicalData({
                         },
                     ]}
                 >
-                    {/* Icon */}
+                    {/* Icon with glow pulse */}
                     <View style={styles.iconContainer}>
-                        <View style={[styles.iconGlow, { backgroundColor: colors.redLighter }]} />
+                        <Animated.View
+                            style={[
+                                styles.iconGlow,
+                                {
+                                    backgroundColor: colors.redLighter,
+                                    transform: [{ scale: glowPulse }],
+                                }
+                            ]}
+                        />
                         <Animated.View
                             style={[
                                 styles.iconCircle,
@@ -156,7 +272,13 @@ export default function FamilyCaregiverPhysicalData({
                     </View>
 
                     {/* Height Card */}
-                    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Animated.View
+                        style={[
+                            styles.card,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: card1Anim, transform: [{ translateY: card1Slide }] }
+                        ]}
+                    >
                         <View style={styles.cardHeader}>
                             <View style={styles.cardLabel}>
                                 <MaterialIcons name="height" size={20} color={Colors.primary} />
@@ -164,8 +286,8 @@ export default function FamilyCaregiverPhysicalData({
                                     Altezza
                                 </Text>
                             </View>
-                            <View style={[styles.unitBadge, { backgroundColor: colors.border }]}>
-                                <Text style={[styles.unitText, { color: colors.textMuted }]}>CM</Text>
+                            <View style={[styles.unitBadge, { backgroundColor: colors.redLighter }]}>
+                                <Text style={[styles.unitText, { color: Colors.primary }]}>CM</Text>
                             </View>
                         </View>
                         <View style={styles.cardContent}>
@@ -173,29 +295,48 @@ export default function FamilyCaregiverPhysicalData({
                                 onPress={() => adjustHeight(-1)}
                                 style={({ pressed }) => [
                                     styles.adjustButton,
-                                    { backgroundColor: pressed ? colors.border : colors.background },
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : colors.background,
+                                        transform: [{ scale: pressed ? 0.9 : 1 }],
+                                    },
                                 ]}
                             >
-                                <MaterialIcons name="remove" size={24} color={colors.text} />
+                                <MaterialIcons name="remove" size={24} color={Colors.primary} />
                             </Pressable>
                             <View style={styles.valueContainer}>
-                                <Text style={[styles.valueText, { color: colors.text }]}>{height}</Text>
+                                <Animated.Text
+                                    style={[
+                                        styles.valueText,
+                                        { color: colors.text, transform: [{ scale: heightBounce }] }
+                                    ]}
+                                >
+                                    {height}
+                                </Animated.Text>
                                 <Text style={[styles.valueSuffix, { color: colors.textMuted }]}>cm</Text>
                             </View>
                             <Pressable
                                 onPress={() => adjustHeight(1)}
                                 style={({ pressed }) => [
                                     styles.adjustButton,
-                                    { backgroundColor: pressed ? colors.border : colors.background },
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : colors.background,
+                                        transform: [{ scale: pressed ? 0.9 : 1 }],
+                                    },
                                 ]}
                             >
-                                <MaterialIcons name="add" size={24} color={colors.text} />
+                                <MaterialIcons name="add" size={24} color={Colors.primary} />
                             </Pressable>
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Weight Card */}
-                    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Animated.View
+                        style={[
+                            styles.card,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: card2Anim, transform: [{ translateY: card2Slide }] }
+                        ]}
+                    >
                         <View style={styles.cardHeader}>
                             <View style={styles.cardLabel}>
                                 <MaterialIcons name="fitness-center" size={20} color={Colors.primary} />
@@ -203,8 +344,8 @@ export default function FamilyCaregiverPhysicalData({
                                     Peso
                                 </Text>
                             </View>
-                            <View style={[styles.unitBadge, { backgroundColor: colors.border }]}>
-                                <Text style={[styles.unitText, { color: colors.textMuted }]}>KG</Text>
+                            <View style={[styles.unitBadge, { backgroundColor: colors.redLighter }]}>
+                                <Text style={[styles.unitText, { color: Colors.primary }]}>KG</Text>
                             </View>
                         </View>
                         <View style={styles.cardContent}>
@@ -212,31 +353,50 @@ export default function FamilyCaregiverPhysicalData({
                                 onPress={() => adjustWeight(-1)}
                                 style={({ pressed }) => [
                                     styles.adjustButton,
-                                    { backgroundColor: pressed ? colors.border : colors.background },
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : colors.background,
+                                        transform: [{ scale: pressed ? 0.9 : 1 }],
+                                    },
                                 ]}
                             >
-                                <MaterialIcons name="remove" size={24} color={colors.text} />
+                                <MaterialIcons name="remove" size={24} color={Colors.primary} />
                             </Pressable>
                             <View style={styles.valueContainer}>
-                                <Text style={[styles.valueText, { color: colors.text }]}>{weight}</Text>
+                                <Animated.Text
+                                    style={[
+                                        styles.valueText,
+                                        { color: colors.text, transform: [{ scale: weightBounce }] }
+                                    ]}
+                                >
+                                    {weight}
+                                </Animated.Text>
                                 <Text style={[styles.valueSuffix, { color: colors.textMuted }]}>kg</Text>
                             </View>
                             <Pressable
                                 onPress={() => adjustWeight(1)}
                                 style={({ pressed }) => [
                                     styles.adjustButton,
-                                    { backgroundColor: pressed ? colors.border : colors.background },
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : colors.background,
+                                        transform: [{ scale: pressed ? 0.9 : 1 }],
+                                    },
                                 ]}
                             >
-                                <MaterialIcons name="add" size={24} color={colors.text} />
+                                <MaterialIcons name="add" size={24} color={Colors.primary} />
                             </Pressable>
                         </View>
-                    </View>
+                    </Animated.View>
                 </Animated.View>
             </ScrollView>
 
             {/* Bottom Button */}
-            <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+            <Animated.View
+                style={[
+                    styles.bottomContainer,
+                    { paddingBottom: Math.max(insets.bottom, 24) },
+                    { opacity: buttonAnim, transform: [{ translateY: buttonSlide }] }
+                ]}
+            >
                 <Pressable
                     onPress={handleContinue}
                     disabled={!isFormValid}
@@ -261,7 +421,7 @@ export default function FamilyCaregiverPhysicalData({
                         color={isFormValid ? '#FFFFFF' : colors.textMuted}
                     />
                 </Pressable>
-            </View>
+            </Animated.View>
         </View>
     );
 }
@@ -270,12 +430,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    backgroundBlurs: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden',
+        zIndex: 0,
+    },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+        opacity: 0.5,
+    },
+    topBlur: {
+        top: '-10%',
+        right: '-10%',
+        width: 256,
+        height: 256,
+    },
+    bottomBlur: {
+        bottom: '-10%',
+        left: '-10%',
+        width: 320,
+        height: 320,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 12,
+        zIndex: 10,
     },
     backButton: {
         width: 40,
@@ -306,6 +493,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        zIndex: 10,
     },
     scrollContent: {
         paddingHorizontal: 24,
@@ -381,13 +569,13 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     unitBadge: {
-        paddingHorizontal: 8,
+        paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: 4,
+        borderRadius: 6,
     },
     unitText: {
         fontSize: 12,
-        fontWeight: '500',
+        fontWeight: '700',
     },
     cardContent: {
         flexDirection: 'row',
@@ -395,9 +583,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     adjustButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -407,11 +595,11 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     valueText: {
-        fontSize: 36,
+        fontSize: 40,
         fontWeight: 'bold',
     },
     valueSuffix: {
-        fontSize: 16,
+        fontSize: 18,
     },
     bottomContainer: {
         position: 'absolute',
@@ -420,6 +608,7 @@ const styles = StyleSheet.create({
         right: 0,
         paddingHorizontal: 24,
         paddingTop: 16,
+        zIndex: 20,
     },
     continueButton: {
         flexDirection: 'row',

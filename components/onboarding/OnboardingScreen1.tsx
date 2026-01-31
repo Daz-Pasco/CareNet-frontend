@@ -9,6 +9,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +19,7 @@ interface Props {
 
 export default function OnboardingScreen1({ colorScheme }: Props) {
     const colors = Colors[colorScheme];
+    const insets = useSafeAreaInsets();
     const pulseAnim = useRef(new Animated.Value(1)).current;
     const pingAnim = useRef(new Animated.Value(0)).current;
     const fadeIn = useRef(new Animated.Value(0)).current;
@@ -104,13 +106,13 @@ export default function OnboardingScreen1({ colorScheme }: Props) {
                 style={[
                     styles.logoContainer,
                     {
-                        backgroundColor: colors.surface,
+                        top: insets.top,
                         transform: [{ translateY: slideDown }],
                     }
                 ]}
             >
                 <Image
-                    source={require('@/assets/images/icon.png')}
+                    source={require('@/assets/images/carenet-logo.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
@@ -229,18 +231,12 @@ const styles = StyleSheet.create({
         height: 192,
     },
     logoContainer: {
-        width: 128,
-        height: 128,
-        borderRadius: 64,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.08,
-        shadowRadius: 40,
-        elevation: 8,
-        padding: 16,
+        position: 'absolute',
+        top: 5,
+        alignSelf: 'center',
+        width: 100,
+        height: 100,
+        zIndex: 20,
     },
     logo: {
         width: '100%',
@@ -253,7 +249,8 @@ const styles = StyleSheet.create({
         maxHeight: 320,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 32,
+        marginTop: 60,
+        marginBottom: 24,
     },
     outerRing: {
         width: 256,
@@ -289,12 +286,12 @@ const styles = StyleSheet.create({
         elevation: 4,
     },
     topRightIcon: {
-        top: 40,
-        right: 40,
+        top: 5,
+        right: 10,
     },
     bottomLeftIcon: {
-        bottom: 40,
-        left: 40,
+        bottom: 20,
+        left: 10,
     },
     centerIcon: {
         padding: 16,

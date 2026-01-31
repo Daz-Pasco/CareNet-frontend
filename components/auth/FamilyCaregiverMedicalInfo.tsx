@@ -49,11 +49,32 @@ export default function FamilyCaregiverMedicalInfo({
     const [modalType, setModalType] = useState<'allergy' | 'condition' | 'medication'>('allergy');
     const [modalInput, setModalInput] = useState('');
 
-    // Animation refs
+    // Animation refs - Main
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(30)).current;
 
+    // Staggered section animations
+    const section1Anim = useRef(new Animated.Value(0)).current;
+    const section1Slide = useRef(new Animated.Value(25)).current;
+    const section2Anim = useRef(new Animated.Value(0)).current;
+    const section2Slide = useRef(new Animated.Value(25)).current;
+    const section3Anim = useRef(new Animated.Value(0)).current;
+    const section3Slide = useRef(new Animated.Value(25)).current;
+
+    // Button animation
+    const buttonAnim = useRef(new Animated.Value(0)).current;
+    const buttonSlide = useRef(new Animated.Value(30)).current;
+
+    // Modal animation
+    const modalScale = useRef(new Animated.Value(0.9)).current;
+    const modalOpacity = useRef(new Animated.Value(0)).current;
+
+    // Background pulse
+    const pulseAnim1 = useRef(new Animated.Value(1)).current;
+    const pulseAnim2 = useRef(new Animated.Value(1)).current;
+
     useEffect(() => {
+        // Main fade in
         Animated.parallel([
             Animated.timing(fadeIn, {
                 toValue: 1,
@@ -66,7 +87,73 @@ export default function FamilyCaregiverMedicalInfo({
                 useNativeDriver: true,
             }),
         ]).start();
+
+        // Staggered section animations
+        const staggerDelay = 120;
+
+        Animated.sequence([
+            Animated.delay(200),
+            Animated.parallel([
+                Animated.timing(section1Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(section1Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay),
+            Animated.parallel([
+                Animated.timing(section2Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(section2Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay * 2),
+            Animated.parallel([
+                Animated.timing(section3Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(section3Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Button entrance
+        Animated.sequence([
+            Animated.delay(600),
+            Animated.parallel([
+                Animated.timing(buttonAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(buttonSlide, { toValue: 0, friction: 6, tension: 60, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim1, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                Animated.timing(pulseAnim1, { toValue: 1, duration: 2500, useNativeDriver: true }),
+            ])
+        ).start();
+
+        setTimeout(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim2, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                    Animated.timing(pulseAnim2, { toValue: 1, duration: 2500, useNativeDriver: true }),
+                ])
+            ).start();
+        }, 1250);
     }, []);
+
+    // Modal entrance animation
+    useEffect(() => {
+        if (modalVisible) {
+            Animated.parallel([
+                Animated.spring(modalScale, { toValue: 1, friction: 8, tension: 100, useNativeDriver: true }),
+                Animated.timing(modalOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+            ]).start();
+        } else {
+            modalScale.setValue(0.9);
+            modalOpacity.setValue(0);
+        }
+    }, [modalVisible]);
 
     const handleContinue = () => {
         onContinue({
@@ -130,10 +217,42 @@ export default function FamilyCaregiverMedicalInfo({
         }
     };
 
+    const getModalIcon = (): keyof typeof MaterialIcons.glyphMap => {
+        switch (modalType) {
+            case 'allergy': return 'spa';
+            case 'condition': return 'medical-services';
+            case 'medication': return 'medication';
+        }
+    };
+
     const progressWidth = `${(currentStep / totalSteps) * 100}%`;
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs with pulse */}
+            <View style={styles.backgroundBlurs}>
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.topBlur,
+                        {
+                            backgroundColor: colors.redLight,
+                            transform: [{ scale: pulseAnim1 }],
+                        },
+                    ]}
+                />
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.bottomBlur,
+                        {
+                            backgroundColor: colors.redLighter,
+                            transform: [{ scale: pulseAnim2 }],
+                        },
+                    ]}
+                />
+            </View>
+
             {/* Header */}
             <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
                 <Pressable
@@ -185,7 +304,12 @@ export default function FamilyCaregiverMedicalInfo({
                     </Text>
 
                     {/* Allergies Section */}
-                    <View style={styles.section}>
+                    <Animated.View
+                        style={[
+                            styles.section,
+                            { opacity: section1Anim, transform: [{ translateY: section1Slide }] }
+                        ]}
+                    >
                         <View style={styles.sectionHeader}>
                             <View style={[styles.sectionIcon, { backgroundColor: colors.redLighter }]}>
                                 <MaterialIcons name="spa" size={20} color={Colors.primary} />
@@ -195,9 +319,16 @@ export default function FamilyCaregiverMedicalInfo({
                         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             {allergies.map((item, index) => (
                                 <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                                    <View style={[styles.itemDot, { backgroundColor: Colors.primary }]} />
                                     <Text style={[styles.listItemText, { color: colors.text }]}>{item}</Text>
-                                    <Pressable onPress={() => removeItem('allergy', index)} style={styles.removeButton}>
-                                        <MaterialIcons name="remove-circle-outline" size={20} color={colors.textMuted} />
+                                    <Pressable
+                                        onPress={() => removeItem('allergy', index)}
+                                        style={({ pressed }) => [
+                                            styles.removeButton,
+                                            { opacity: pressed ? 0.5 : 1, transform: [{ scale: pressed ? 0.9 : 1 }] }
+                                        ]}
+                                    >
+                                        <MaterialIcons name="close" size={18} color={colors.textMuted} />
                                     </Pressable>
                                 </View>
                             ))}
@@ -205,17 +336,28 @@ export default function FamilyCaregiverMedicalInfo({
                                 onPress={() => openModal('allergy')}
                                 style={({ pressed }) => [
                                     styles.addButton,
-                                    { backgroundColor: pressed ? colors.redLighter : 'transparent', borderTopColor: colors.border }
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : 'transparent',
+                                        borderTopColor: allergies.length > 0 ? colors.border : 'transparent',
+                                        borderTopWidth: allergies.length > 0 ? 1 : 0,
+                                    }
                                 ]}
                             >
-                                <MaterialIcons name="add" size={20} color={Colors.primary} />
+                                <View style={[styles.addIconCircle, { backgroundColor: colors.redLighter }]}>
+                                    <MaterialIcons name="add" size={18} color={Colors.primary} />
+                                </View>
                                 <Text style={[styles.addButtonText, { color: Colors.primary }]}>Aggiungi allergia</Text>
                             </Pressable>
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Conditions Section */}
-                    <View style={styles.section}>
+                    <Animated.View
+                        style={[
+                            styles.section,
+                            { opacity: section2Anim, transform: [{ translateY: section2Slide }] }
+                        ]}
+                    >
                         <View style={styles.sectionHeader}>
                             <View style={[styles.sectionIcon, { backgroundColor: colors.redLighter }]}>
                                 <MaterialIcons name="medical-services" size={20} color={Colors.primary} />
@@ -225,9 +367,16 @@ export default function FamilyCaregiverMedicalInfo({
                         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             {conditions.map((item, index) => (
                                 <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                                    <View style={[styles.itemDot, { backgroundColor: Colors.primary }]} />
                                     <Text style={[styles.listItemText, { color: colors.text }]}>{item}</Text>
-                                    <Pressable onPress={() => removeItem('condition', index)} style={styles.removeButton}>
-                                        <MaterialIcons name="remove-circle-outline" size={20} color={colors.textMuted} />
+                                    <Pressable
+                                        onPress={() => removeItem('condition', index)}
+                                        style={({ pressed }) => [
+                                            styles.removeButton,
+                                            { opacity: pressed ? 0.5 : 1, transform: [{ scale: pressed ? 0.9 : 1 }] }
+                                        ]}
+                                    >
+                                        <MaterialIcons name="close" size={18} color={colors.textMuted} />
                                     </Pressable>
                                 </View>
                             ))}
@@ -235,17 +384,28 @@ export default function FamilyCaregiverMedicalInfo({
                                 onPress={() => openModal('condition')}
                                 style={({ pressed }) => [
                                     styles.addButton,
-                                    { backgroundColor: pressed ? colors.redLighter : 'transparent', borderTopColor: colors.border }
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : 'transparent',
+                                        borderTopColor: conditions.length > 0 ? colors.border : 'transparent',
+                                        borderTopWidth: conditions.length > 0 ? 1 : 0,
+                                    }
                                 ]}
                             >
-                                <MaterialIcons name="add" size={20} color={Colors.primary} />
+                                <View style={[styles.addIconCircle, { backgroundColor: colors.redLighter }]}>
+                                    <MaterialIcons name="add" size={18} color={Colors.primary} />
+                                </View>
                                 <Text style={[styles.addButtonText, { color: Colors.primary }]}>Aggiungi patologia</Text>
                             </Pressable>
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Medications Section */}
-                    <View style={styles.section}>
+                    <Animated.View
+                        style={[
+                            styles.section,
+                            { opacity: section3Anim, transform: [{ translateY: section3Slide }] }
+                        ]}
+                    >
                         <View style={styles.sectionHeader}>
                             <View style={[styles.sectionIcon, { backgroundColor: colors.redLighter }]}>
                                 <MaterialIcons name="medication" size={20} color={Colors.primary} />
@@ -255,9 +415,16 @@ export default function FamilyCaregiverMedicalInfo({
                         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             {medications.map((item, index) => (
                                 <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                                    <View style={[styles.itemDot, { backgroundColor: Colors.primary }]} />
                                     <Text style={[styles.listItemText, { color: colors.text }]}>{item}</Text>
-                                    <Pressable onPress={() => removeItem('medication', index)} style={styles.removeButton}>
-                                        <MaterialIcons name="remove-circle-outline" size={20} color={colors.textMuted} />
+                                    <Pressable
+                                        onPress={() => removeItem('medication', index)}
+                                        style={({ pressed }) => [
+                                            styles.removeButton,
+                                            { opacity: pressed ? 0.5 : 1, transform: [{ scale: pressed ? 0.9 : 1 }] }
+                                        ]}
+                                    >
+                                        <MaterialIcons name="close" size={18} color={colors.textMuted} />
                                     </Pressable>
                                 </View>
                             ))}
@@ -265,19 +432,31 @@ export default function FamilyCaregiverMedicalInfo({
                                 onPress={() => openModal('medication')}
                                 style={({ pressed }) => [
                                     styles.addButton,
-                                    { backgroundColor: pressed ? colors.redLighter : 'transparent', borderTopColor: colors.border }
+                                    {
+                                        backgroundColor: pressed ? colors.redLighter : 'transparent',
+                                        borderTopColor: medications.length > 0 ? colors.border : 'transparent',
+                                        borderTopWidth: medications.length > 0 ? 1 : 0,
+                                    }
                                 ]}
                             >
-                                <MaterialIcons name="add" size={20} color={Colors.primary} />
+                                <View style={[styles.addIconCircle, { backgroundColor: colors.redLighter }]}>
+                                    <MaterialIcons name="add" size={18} color={Colors.primary} />
+                                </View>
                                 <Text style={[styles.addButtonText, { color: Colors.primary }]}>Aggiungi farmaco</Text>
                             </Pressable>
                         </View>
-                    </View>
+                    </Animated.View>
                 </Animated.View>
             </ScrollView>
 
             {/* Bottom Button */}
-            <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+            <Animated.View
+                style={[
+                    styles.bottomContainer,
+                    { paddingBottom: Math.max(insets.bottom, 24) },
+                    { opacity: buttonAnim, transform: [{ translateY: buttonSlide }] }
+                ]}
+            >
                 <Pressable
                     onPress={handleContinue}
                     style={({ pressed }) => [
@@ -294,41 +473,74 @@ export default function FamilyCaregiverMedicalInfo({
                     </Text>
                     <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
                 </Pressable>
-            </View>
+            </Animated.View>
 
-            {/* Add Item Modal */}
+            {/* Add Item Modal with animations */}
             <Modal
                 visible={modalVisible}
                 transparent
-                animationType="fade"
+                animationType="none"
                 onRequestClose={() => setModalVisible(false)}
             >
                 <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
-                    <Pressable style={[styles.modalContent, { backgroundColor: colors.surface }]} onPress={e => e.stopPropagation()}>
-                        <Text style={[styles.modalTitle, { color: colors.text }]}>{getModalTitle()}</Text>
-                        <TextInput
-                            style={[styles.modalInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
-                            placeholder={getModalPlaceholder()}
-                            placeholderTextColor={colors.textMuted}
-                            value={modalInput}
-                            onChangeText={setModalInput}
-                            autoFocus
-                        />
-                        <View style={styles.modalButtons}>
-                            <Pressable
-                                onPress={() => setModalVisible(false)}
-                                style={[styles.modalButton, { backgroundColor: colors.border }]}
-                            >
-                                <Text style={[styles.modalButtonText, { color: colors.text }]}>Annulla</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={handleAddItem}
-                                style={[styles.modalButton, { backgroundColor: Colors.primary }]}
-                            >
-                                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Aggiungi</Text>
-                            </Pressable>
-                        </View>
-                    </Pressable>
+                    <Animated.View
+                        style={[
+                            styles.modalContent,
+                            {
+                                backgroundColor: colors.surface,
+                                transform: [{ scale: modalScale }],
+                                opacity: modalOpacity,
+                            }
+                        ]}
+                    >
+                        <Pressable onPress={e => e.stopPropagation()}>
+                            {/* Modal Header */}
+                            <View style={styles.modalHeader}>
+                                <View style={[styles.modalIcon, { backgroundColor: colors.redLighter }]}>
+                                    <MaterialIcons name={getModalIcon()} size={24} color={Colors.primary} />
+                                </View>
+                                <Text style={[styles.modalTitle, { color: colors.text }]}>{getModalTitle()}</Text>
+                            </View>
+
+                            <TextInput
+                                style={[styles.modalInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                                placeholder={getModalPlaceholder()}
+                                placeholderTextColor={colors.textMuted}
+                                value={modalInput}
+                                onChangeText={setModalInput}
+                                autoFocus
+                            />
+                            <View style={styles.modalButtons}>
+                                <Pressable
+                                    onPress={() => setModalVisible(false)}
+                                    style={({ pressed }) => [
+                                        styles.modalButton,
+                                        styles.modalButtonCancel,
+                                        {
+                                            backgroundColor: colors.background,
+                                            borderColor: colors.border,
+                                            transform: [{ scale: pressed ? 0.97 : 1 }],
+                                        }
+                                    ]}
+                                >
+                                    <Text style={[styles.modalButtonText, { color: colors.text }]}>Annulla</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={handleAddItem}
+                                    style={({ pressed }) => [
+                                        styles.modalButton,
+                                        {
+                                            backgroundColor: modalInput.trim() ? Colors.primary : colors.border,
+                                            transform: [{ scale: pressed && modalInput.trim() ? 0.97 : 1 }],
+                                        }
+                                    ]}
+                                >
+                                    <MaterialIcons name="add" size={18} color={modalInput.trim() ? '#FFFFFF' : colors.textMuted} />
+                                    <Text style={[styles.modalButtonText, { color: modalInput.trim() ? '#FFFFFF' : colors.textMuted }]}>Aggiungi</Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
+                    </Animated.View>
                 </Pressable>
             </Modal>
         </View>
@@ -339,12 +551,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    backgroundBlurs: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden',
+        zIndex: 0,
+    },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+        opacity: 0.5,
+    },
+    topBlur: {
+        top: '-10%',
+        right: '-10%',
+        width: 256,
+        height: 256,
+    },
+    bottomBlur: {
+        bottom: '-10%',
+        left: '-10%',
+        width: 320,
+        height: 320,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 12,
+        zIndex: 10,
     },
     backButton: {
         width: 40,
@@ -375,6 +614,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        zIndex: 10,
     },
     scrollContent: {
         paddingHorizontal: 24,
@@ -392,21 +632,21 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 14,
         lineHeight: 20,
-        marginBottom: 32,
+        marginBottom: 28,
     },
     section: {
-        marginBottom: 24,
+        marginBottom: 20,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 10,
         marginBottom: 12,
     },
     sectionIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
+        width: 40,
+        height: 40,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -415,34 +655,47 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     card: {
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1,
         overflow: 'hidden',
     },
     listItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         padding: 16,
         borderBottomWidth: 1,
     },
+    itemDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginRight: 12,
+    },
     listItemText: {
+        flex: 1,
         fontSize: 16,
         fontWeight: '500',
     },
     removeButton: {
-        padding: 4,
+        padding: 6,
+        marginLeft: 8,
     },
     addButton: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
         padding: 16,
-        borderTopWidth: 1,
+    },
+    addIconCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     addButtonText: {
-        fontSize: 14,
-        fontWeight: '500',
+        fontSize: 15,
+        fontWeight: '600',
     },
     bottomContainer: {
         position: 'absolute',
@@ -451,6 +704,7 @@ const styles = StyleSheet.create({
         right: 0,
         paddingHorizontal: 24,
         paddingTop: 16,
+        zIndex: 20,
     },
     continueButton: {
         flexDirection: 'row',
@@ -480,19 +734,36 @@ const styles = StyleSheet.create({
     modalContent: {
         width: '100%',
         padding: 24,
-        borderRadius: 16,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 20,
+    },
+    modalIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 16,
     },
     modalInput: {
         borderWidth: 1,
-        borderRadius: 12,
+        borderRadius: 14,
         padding: 16,
         fontSize: 16,
-        marginBottom: 16,
+        marginBottom: 20,
     },
     modalButtons: {
         flexDirection: 'row',
@@ -500,12 +771,18 @@ const styles = StyleSheet.create({
     },
     modalButton: {
         flex: 1,
-        paddingVertical: 12,
-        borderRadius: 12,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 14,
+        borderRadius: 12,
+    },
+    modalButtonCancel: {
+        borderWidth: 1,
     },
     modalButtonText: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '600',
     },
 });

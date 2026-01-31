@@ -78,6 +78,7 @@ export default function ProfileSummaryPage() {
             profileData={profileData}
             onConfirm={handleConfirm}
             onEdit={handleEdit}
+            onBack={handleEdit}
         />
     );
 }

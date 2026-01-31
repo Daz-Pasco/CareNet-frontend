@@ -39,12 +39,35 @@ export default function FamilyCaregiverAddress({
     // Form state
     const [address, setAddress] = useState(initialData?.address || '');
 
-    // Animation refs
+    // Animation refs - Main
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(30)).current;
+
+    // Pin bounce
     const pinBounce = useRef(new Animated.Value(0)).current;
 
+    // Staggered element animations
+    const mapAnim = useRef(new Animated.Value(0)).current;
+    const mapScale = useRef(new Animated.Value(0.95)).current;
+    const inputAnim = useRef(new Animated.Value(0)).current;
+    const inputSlide = useRef(new Animated.Value(20)).current;
+    const optionsAnim = useRef(new Animated.Value(0)).current;
+    const optionsSlide = useRef(new Animated.Value(20)).current;
+    const badgesAnim = useRef(new Animated.Value(0)).current;
+
+    // Button animation
+    const buttonAnim = useRef(new Animated.Value(0)).current;
+    const buttonSlide = useRef(new Animated.Value(30)).current;
+
+    // Background pulse
+    const pulseAnim1 = useRef(new Animated.Value(1)).current;
+    const pulseAnim2 = useRef(new Animated.Value(1)).current;
+
+    // Pin glow
+    const pinGlow = useRef(new Animated.Value(0.5)).current;
+
     useEffect(() => {
+        // Main fade in
         Animated.parallel([
             Animated.timing(fadeIn, {
                 toValue: 1,
@@ -58,21 +81,88 @@ export default function FamilyCaregiverAddress({
             }),
         ]).start();
 
+        // Map card animation
+        Animated.sequence([
+            Animated.delay(200),
+            Animated.parallel([
+                Animated.timing(mapAnim, { toValue: 1, duration: 450, useNativeDriver: true }),
+                Animated.spring(mapScale, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Input animation
+        Animated.sequence([
+            Animated.delay(350),
+            Animated.parallel([
+                Animated.timing(inputAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(inputSlide, { toValue: 0, duration: 400, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Quick options animation
+        Animated.sequence([
+            Animated.delay(450),
+            Animated.parallel([
+                Animated.timing(optionsAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(optionsSlide, { toValue: 0, duration: 400, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Badges animation
+        Animated.sequence([
+            Animated.delay(550),
+            Animated.timing(badgesAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        ]).start();
+
+        // Button entrance
+        Animated.sequence([
+            Animated.delay(600),
+            Animated.parallel([
+                Animated.timing(buttonAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(buttonSlide, { toValue: 0, friction: 6, tension: 60, useNativeDriver: true }),
+            ]),
+        ]).start();
+
         // Pin bounce animation loop
         Animated.loop(
             Animated.sequence([
                 Animated.timing(pinBounce, {
-                    toValue: -10,
-                    duration: 600,
+                    toValue: -12,
+                    duration: 800,
                     useNativeDriver: true,
                 }),
                 Animated.timing(pinBounce, {
                     toValue: 0,
-                    duration: 600,
+                    duration: 800,
                     useNativeDriver: true,
                 }),
             ])
         ).start();
+
+        // Pin glow animation
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pinGlow, { toValue: 1, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pinGlow, { toValue: 0.5, duration: 1000, useNativeDriver: true }),
+            ])
+        ).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim1, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                Animated.timing(pulseAnim1, { toValue: 1, duration: 2500, useNativeDriver: true }),
+            ])
+        ).start();
+
+        setTimeout(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim2, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                    Animated.timing(pulseAnim2, { toValue: 1, duration: 2500, useNativeDriver: true }),
+                ])
+            ).start();
+        }, 1250);
     }, []);
 
     const handleContinue = () => {
@@ -85,6 +175,30 @@ export default function FamilyCaregiverAddress({
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs with pulse */}
+            <View style={styles.backgroundBlurs}>
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.topBlur,
+                        {
+                            backgroundColor: colors.redLight,
+                            transform: [{ scale: pulseAnim1 }],
+                        },
+                    ]}
+                />
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.bottomBlur,
+                        {
+                            backgroundColor: colors.redLighter,
+                            transform: [{ scale: pulseAnim2 }],
+                        },
+                    ]}
+                />
+            </View>
+
             {/* Header */}
             <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
                 <Pressable
@@ -137,16 +251,32 @@ export default function FamilyCaregiverAddress({
                     </Text>
 
                     {/* Map Placeholder */}
-                    <View style={[styles.mapContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Animated.View
+                        style={[
+                            styles.mapContainer,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: mapAnim, transform: [{ scale: mapScale }] }
+                        ]}
+                    >
                         <View style={[styles.mapBackground, { backgroundColor: colors.background }]}>
                             {/* Fake map lines */}
-                            <View style={styles.mapLine1} />
-                            <View style={styles.mapLine2} />
+                            <View style={[styles.mapLine1, { backgroundColor: colors.border }]} />
+                            <View style={[styles.mapLine2, { backgroundColor: colors.border }]} />
+                            <View style={[styles.mapLine3, { backgroundColor: colors.border }]} />
 
-                            {/* Bouncing pin */}
+                            {/* Bouncing pin with glow */}
                             <Animated.View style={[styles.pinContainer, { transform: [{ translateY: pinBounce }] }]}>
+                                <Animated.View
+                                    style={[
+                                        styles.pinGlow,
+                                        {
+                                            backgroundColor: Colors.primary,
+                                            opacity: pinGlow,
+                                        }
+                                    ]}
+                                />
                                 <View style={styles.pin}>
-                                    <MaterialIcons name="home" size={16} color="#FFFFFF" />
+                                    <MaterialIcons name="home" size={18} color="#FFFFFF" />
                                 </View>
                                 <View style={styles.pinStem} />
                                 <View style={styles.pinShadow} />
@@ -154,13 +284,27 @@ export default function FamilyCaregiverAddress({
                         </View>
 
                         {/* Location button */}
-                        <Pressable style={[styles.locationButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                            <MaterialIcons name="my-location" size={20} color={colors.textMuted} />
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.locationButton,
+                                {
+                                    backgroundColor: pressed ? colors.redLighter : colors.surface,
+                                    borderColor: colors.border,
+                                    transform: [{ scale: pressed ? 0.95 : 1 }],
+                                }
+                            ]}
+                        >
+                            <MaterialIcons name="my-location" size={20} color={Colors.primary} />
                         </Pressable>
-                    </View>
+                    </Animated.View>
 
                     {/* Address Input */}
-                    <View style={styles.inputGroup}>
+                    <Animated.View
+                        style={[
+                            styles.inputGroup,
+                            { opacity: inputAnim, transform: [{ translateY: inputSlide }] }
+                        ]}
+                    >
                         <Text style={[styles.label, { color: colors.text }]}>
                             Indirizzo
                         </Text>
@@ -174,18 +318,26 @@ export default function FamilyCaregiverAddress({
                                 onChangeText={setAddress}
                             />
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Quick Options */}
-                    <View style={styles.quickOptions}>
+                    <Animated.View
+                        style={[
+                            styles.quickOptions,
+                            { opacity: optionsAnim, transform: [{ translateY: optionsSlide }] }
+                        ]}
+                    >
                         <Pressable
                             style={({ pressed }) => [
                                 styles.quickOption,
-                                { backgroundColor: pressed ? colors.border : 'transparent' },
+                                {
+                                    backgroundColor: pressed ? colors.redLighter : 'transparent',
+                                    borderRadius: 12,
+                                },
                             ]}
                         >
-                            <View style={[styles.quickOptionIcon, { backgroundColor: colors.background }]}>
-                                <MaterialIcons name="history" size={16} color={colors.textMuted} />
+                            <View style={[styles.quickOptionIcon, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                                <MaterialIcons name="history" size={18} color={Colors.primary} />
                             </View>
                             <View style={styles.quickOptionText}>
                                 <Text style={[styles.quickOptionTitle, { color: colors.text }]}>
@@ -195,16 +347,20 @@ export default function FamilyCaregiverAddress({
                                     Milano, MI
                                 </Text>
                             </View>
+                            <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
                         </Pressable>
 
                         <Pressable
                             style={({ pressed }) => [
                                 styles.quickOption,
-                                { backgroundColor: pressed ? colors.border : 'transparent' },
+                                {
+                                    backgroundColor: pressed ? colors.redLighter : 'transparent',
+                                    borderRadius: 12,
+                                },
                             ]}
                         >
-                            <View style={[styles.quickOptionIcon, { backgroundColor: colors.background }]}>
-                                <MaterialIcons name="near-me" size={16} color={colors.textMuted} />
+                            <View style={[styles.quickOptionIcon, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                                <MaterialIcons name="near-me" size={18} color={Colors.primary} />
                             </View>
                             <View style={styles.quickOptionText}>
                                 <Text style={[styles.quickOptionTitle, { color: colors.text }]}>
@@ -214,11 +370,17 @@ export default function FamilyCaregiverAddress({
                                     Utilizza il GPS
                                 </Text>
                             </View>
+                            <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
                         </Pressable>
-                    </View>
+                    </Animated.View>
 
                     {/* Security badges */}
-                    <View style={styles.badgesContainer}>
+                    <Animated.View
+                        style={[
+                            styles.badgesContainer,
+                            { opacity: badgesAnim }
+                        ]}
+                    >
                         <View style={[styles.badge, { backgroundColor: colors.redLighter }]}>
                             <MaterialIcons name="security" size={14} color={Colors.primary} />
                             <Text style={[styles.badgeText, { color: Colors.primary }]}>
@@ -231,12 +393,18 @@ export default function FamilyCaregiverAddress({
                                 Solo per emergenze
                             </Text>
                         </View>
-                    </View>
+                    </Animated.View>
                 </Animated.View>
             </ScrollView>
 
             {/* Bottom Button */}
-            <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+            <Animated.View
+                style={[
+                    styles.bottomContainer,
+                    { paddingBottom: Math.max(insets.bottom, 24) },
+                    { opacity: buttonAnim, transform: [{ translateY: buttonSlide }] }
+                ]}
+            >
                 <Pressable
                     onPress={handleContinue}
                     disabled={!isFormValid}
@@ -261,7 +429,7 @@ export default function FamilyCaregiverAddress({
                         color={isFormValid ? '#FFFFFF' : colors.textMuted}
                     />
                 </Pressable>
-            </View>
+            </Animated.View>
         </View>
     );
 }
@@ -270,12 +438,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    backgroundBlurs: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden',
+        zIndex: 0,
+    },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+        opacity: 0.5,
+    },
+    topBlur: {
+        top: '-10%',
+        right: '-10%',
+        width: 256,
+        height: 256,
+    },
+    bottomBlur: {
+        bottom: '-10%',
+        left: '-10%',
+        width: 320,
+        height: 320,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 12,
+        zIndex: 10,
     },
     backButton: {
         width: 40,
@@ -306,6 +501,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        zIndex: 10,
     },
     scrollContent: {
         paddingHorizontal: 24,
@@ -326,8 +522,8 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     mapContainer: {
-        height: 180,
-        borderRadius: 16,
+        height: 200,
+        borderRadius: 20,
         borderWidth: 1,
         overflow: 'hidden',
         marginBottom: 24,
@@ -340,111 +536,125 @@ const styles = StyleSheet.create({
     },
     mapLine1: {
         position: 'absolute',
-        left: '30%',
+        left: '25%',
         top: 0,
         bottom: 0,
         width: 2,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        transform: [{ skewX: '-10deg' }],
+        opacity: 0.3,
     },
     mapLine2: {
         position: 'absolute',
         left: 0,
         right: 0,
-        top: '50%',
+        top: '40%',
         height: 2,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        transform: [{ rotate: '2deg' }],
+        opacity: 0.3,
+    },
+    mapLine3: {
+        position: 'absolute',
+        left: '60%',
+        top: 0,
+        bottom: 0,
+        width: 2,
+        opacity: 0.3,
     },
     pinContainer: {
         alignItems: 'center',
     },
+    pinGlow: {
+        position: 'absolute',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        top: -12,
+    },
     pin: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: '#000',
+        shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 4,
-        borderWidth: 2,
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 6,
+        borderWidth: 3,
         borderColor: '#FFFFFF',
     },
     pinStem: {
         width: 6,
-        height: 12,
+        height: 14,
         backgroundColor: Colors.primary,
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,
     },
     pinShadow: {
-        width: 16,
-        height: 4,
+        width: 20,
+        height: 6,
         backgroundColor: 'rgba(0,0,0,0.2)',
-        borderRadius: 8,
-        marginTop: 2,
+        borderRadius: 10,
+        marginTop: 4,
     },
     locationButton: {
         position: 'absolute',
         top: 12,
         right: 12,
-        padding: 8,
-        borderRadius: 8,
+        padding: 10,
+        borderRadius: 12,
         borderWidth: 1,
     },
     inputGroup: {
-        marginBottom: 16,
+        marginBottom: 20,
     },
     label: {
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
         marginBottom: 8,
     },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 12,
+        borderRadius: 14,
+        paddingHorizontal: 14,
     },
     inputIcon: {
-        marginRight: 8,
+        marginRight: 10,
     },
     input: {
         flex: 1,
-        paddingVertical: 14,
+        paddingVertical: 16,
         fontSize: 16,
     },
     quickOptions: {
         marginBottom: 24,
+        gap: 8,
     },
     quickOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 12,
+        padding: 14,
     },
     quickOptionIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 40,
+        height: 40,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
+        marginRight: 14,
+        borderWidth: 1,
     },
     quickOptionText: {
         flex: 1,
     },
     quickOptionTitle: {
-        fontSize: 14,
-        fontWeight: '500',
+        fontSize: 15,
+        fontWeight: '600',
     },
     quickOptionSubtitle: {
-        fontSize: 12,
+        fontSize: 13,
         marginTop: 2,
     },
     badgesContainer: {
@@ -455,9 +665,9 @@ const styles = StyleSheet.create({
     badge: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 10,
         gap: 6,
     },
     infoBadge: {
@@ -467,7 +677,7 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 12,
-        fontWeight: '500',
+        fontWeight: '600',
     },
     bottomContainer: {
         position: 'absolute',
@@ -476,6 +686,7 @@ const styles = StyleSheet.create({
         right: 0,
         paddingHorizontal: 24,
         paddingTop: 16,
+        zIndex: 20,
     },
     continueButton: {
         flexDirection: 'row',

@@ -53,11 +53,33 @@ export default function FamilyCaregiverSummary({
     const colors = Colors[colorScheme];
     const insets = useSafeAreaInsets();
 
-    // Animation refs
+    // Animation refs - Main
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(30)).current;
 
+    // Staggered card animations
+    const card1Anim = useRef(new Animated.Value(0)).current;
+    const card1Slide = useRef(new Animated.Value(25)).current;
+    const card2Anim = useRef(new Animated.Value(0)).current;
+    const card2Slide = useRef(new Animated.Value(25)).current;
+    const card3Anim = useRef(new Animated.Value(0)).current;
+    const card3Slide = useRef(new Animated.Value(25)).current;
+    const card4Anim = useRef(new Animated.Value(0)).current;
+    const card4Slide = useRef(new Animated.Value(25)).current;
+
+    // Button animation
+    const buttonAnim = useRef(new Animated.Value(0)).current;
+    const buttonScale = useRef(new Animated.Value(0.95)).current;
+
+    // Success checkmark
+    const checkScale = useRef(new Animated.Value(0)).current;
+
+    // Background pulse
+    const pulseAnim1 = useRef(new Animated.Value(1)).current;
+    const pulseAnim2 = useRef(new Animated.Value(1)).current;
+
     useEffect(() => {
+        // Main fade in
         Animated.parallel([
             Animated.timing(fadeIn, {
                 toValue: 1,
@@ -70,6 +92,73 @@ export default function FamilyCaregiverSummary({
                 useNativeDriver: true,
             }),
         ]).start();
+
+        // Staggered card animations
+        const staggerDelay = 100;
+
+        Animated.sequence([
+            Animated.delay(200),
+            Animated.parallel([
+                Animated.timing(card1Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(card1Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay),
+            Animated.parallel([
+                Animated.timing(card2Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(card2Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay * 2),
+            Animated.parallel([
+                Animated.timing(card3Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(card3Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay * 3),
+            Animated.parallel([
+                Animated.timing(card4Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(card4Slide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Button entrance with bounce
+        Animated.sequence([
+            Animated.delay(700),
+            Animated.parallel([
+                Animated.timing(buttonAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(buttonScale, { toValue: 1, friction: 6, tension: 80, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Checkmark pop animation
+        Animated.sequence([
+            Animated.delay(800),
+            Animated.spring(checkScale, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }),
+        ]).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim1, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                Animated.timing(pulseAnim1, { toValue: 1, duration: 2500, useNativeDriver: true }),
+            ])
+        ).start();
+
+        setTimeout(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim2, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                    Animated.timing(pulseAnim2, { toValue: 1, duration: 2500, useNativeDriver: true }),
+                ])
+            ).start();
+        }, 1250);
     }, []);
 
     const getGenderLabel = (gender: string | null) => {
@@ -82,6 +171,30 @@ export default function FamilyCaregiverSummary({
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs with pulse */}
+            <View style={styles.backgroundBlurs}>
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.topBlur,
+                        {
+                            backgroundColor: colors.redLight,
+                            transform: [{ scale: pulseAnim1 }],
+                        },
+                    ]}
+                />
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.bottomBlur,
+                        {
+                            backgroundColor: colors.redLighter,
+                            transform: [{ scale: pulseAnim2 }],
+                        },
+                    ]}
+                />
+            </View>
+
             {/* Header */}
             <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
                 <Pressable
@@ -119,17 +232,45 @@ export default function FamilyCaregiverSummary({
                         },
                     ]}
                 >
+                    {/* Success Badge with animated checkmark */}
+                    <View style={styles.successBadgeContainer}>
+                        <Animated.View
+                            style={[
+                                styles.checkCircle,
+                                {
+                                    backgroundColor: colors.redLighter,
+                                    transform: [{ scale: checkScale }],
+                                }
+                            ]}
+                        >
+                            <MaterialIcons name="check-circle" size={48} color={Colors.primary} />
+                        </Animated.View>
+                    </View>
+
                     {/* Title */}
                     <Text style={[styles.title, { color: colors.text }]}>
                         Riepilogo dati
                     </Text>
                     <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-                        Controlla che tutto sia corretto.
+                        Controlla che tutto sia corretto prima di confermare.
                     </Text>
 
                     {/* Profile Section */}
-                    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <Pressable onPress={onEditProfile} style={styles.editButton}>
+                    <Animated.View
+                        style={[
+                            styles.card,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: card1Anim, transform: [{ translateY: card1Slide }] }
+                        ]}
+                    >
+                        <Pressable
+                            onPress={onEditProfile}
+                            style={({ pressed }) => [
+                                styles.editButton,
+                                { opacity: pressed ? 0.6 : 1 }
+                            ]}
+                        >
+                            <MaterialIcons name="edit" size={16} color={Colors.primary} />
                             <Text style={[styles.editButtonText, { color: Colors.primary }]}>Modifica</Text>
                         </Pressable>
                         <View style={styles.cardHeader}>
@@ -160,11 +301,24 @@ export default function FamilyCaregiverSummary({
                                 <Text style={[styles.gridValue, { color: colors.text }]}>{getGenderLabel(data.gender)}</Text>
                             </View>
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Physical Data Section */}
-                    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <Pressable onPress={onEditPhysical} style={styles.editButton}>
+                    <Animated.View
+                        style={[
+                            styles.card,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: card2Anim, transform: [{ translateY: card2Slide }] }
+                        ]}
+                    >
+                        <Pressable
+                            onPress={onEditPhysical}
+                            style={({ pressed }) => [
+                                styles.editButton,
+                                { opacity: pressed ? 0.6 : 1 }
+                            ]}
+                        >
+                            <MaterialIcons name="edit" size={16} color={Colors.primary} />
                             <Text style={[styles.editButtonText, { color: Colors.primary }]}>Modifica</Text>
                         </Pressable>
                         <View style={styles.cardHeader}>
@@ -173,21 +327,36 @@ export default function FamilyCaregiverSummary({
                             </View>
                             <Text style={[styles.cardTitle, { color: colors.text }]}>Dati Fisici</Text>
                         </View>
-                        <View style={styles.cardGrid}>
-                            <View style={styles.gridItem}>
-                                <Text style={[styles.gridLabel, { color: colors.textMuted }]}>Altezza</Text>
-                                <Text style={[styles.gridValue, { color: colors.text }]}>{data.heightCm} cm</Text>
+                        <View style={styles.physicalDataRow}>
+                            <View style={[styles.physicalDataItem, { backgroundColor: colors.background }]}>
+                                <MaterialIcons name="height" size={24} color={Colors.primary} />
+                                <Text style={[styles.physicalValue, { color: colors.text }]}>{data.heightCm}</Text>
+                                <Text style={[styles.physicalUnit, { color: colors.textMuted }]}>cm</Text>
                             </View>
-                            <View style={styles.gridItem}>
-                                <Text style={[styles.gridLabel, { color: colors.textMuted }]}>Peso</Text>
-                                <Text style={[styles.gridValue, { color: colors.text }]}>{data.weightKg} kg</Text>
+                            <View style={[styles.physicalDataItem, { backgroundColor: colors.background }]}>
+                                <MaterialIcons name="fitness-center" size={24} color={Colors.primary} />
+                                <Text style={[styles.physicalValue, { color: colors.text }]}>{data.weightKg}</Text>
+                                <Text style={[styles.physicalUnit, { color: colors.textMuted }]}>kg</Text>
                             </View>
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Address Section */}
-                    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <Pressable onPress={onEditAddress} style={styles.editButton}>
+                    <Animated.View
+                        style={[
+                            styles.card,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: card3Anim, transform: [{ translateY: card3Slide }] }
+                        ]}
+                    >
+                        <Pressable
+                            onPress={onEditAddress}
+                            style={({ pressed }) => [
+                                styles.editButton,
+                                { opacity: pressed ? 0.6 : 1 }
+                            ]}
+                        >
+                            <MaterialIcons name="edit" size={16} color={Colors.primary} />
                             <Text style={[styles.editButtonText, { color: Colors.primary }]}>Modifica</Text>
                         </Pressable>
                         <View style={styles.cardHeader}>
@@ -196,76 +365,105 @@ export default function FamilyCaregiverSummary({
                             </View>
                             <Text style={[styles.cardTitle, { color: colors.text }]}>Indirizzo</Text>
                         </View>
-                        <View>
-                            <Text style={[styles.gridLabel, { color: colors.textMuted }]}>Residenza</Text>
-                            <Text style={[styles.gridValue, { color: colors.text }]}>{data.address || 'Non specificato'}</Text>
+                        <View style={styles.addressRow}>
+                            <MaterialIcons name="place" size={18} color={colors.textMuted} />
+                            <Text style={[styles.addressText, { color: colors.text }]}>{data.address || 'Non specificato'}</Text>
                         </View>
-                    </View>
+                    </Animated.View>
 
                     {/* Medical Info Section */}
-                    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <Pressable onPress={onEditMedical} style={styles.editButton}>
+                    <Animated.View
+                        style={[
+                            styles.card,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                            { opacity: card4Anim, transform: [{ translateY: card4Slide }] }
+                        ]}
+                    >
+                        <Pressable
+                            onPress={onEditMedical}
+                            style={({ pressed }) => [
+                                styles.editButton,
+                                { opacity: pressed ? 0.6 : 1 }
+                            ]}
+                        >
+                            <MaterialIcons name="edit" size={16} color={Colors.primary} />
                             <Text style={[styles.editButtonText, { color: Colors.primary }]}>Modifica</Text>
                         </Pressable>
                         <View style={styles.cardHeader}>
                             <View style={[styles.cardIcon, { backgroundColor: colors.redLighter }]}>
                                 <MaterialIcons name="medical-services" size={20} color={Colors.primary} />
                             </View>
-                            <Text style={[styles.cardTitle, { color: colors.text }]}>Info Mediche</Text>
+                            <Text style={[styles.cardTitle, { color: colors.text }]}>Informazioni Mediche</Text>
                         </View>
+
+                        {/* Allergies */}
                         <View style={styles.medicalSection}>
-                            <Text style={[styles.gridLabel, { color: colors.textMuted }]}>Allergie</Text>
-                            <View style={styles.tagsContainer}>
-                                {data.allergies.length > 0 ? (
-                                    data.allergies.map((item, index) => (
+                            <View style={styles.medicalLabelRow}>
+                                <MaterialIcons name="spa" size={16} color={colors.textMuted} />
+                                <Text style={[styles.medicalLabel, { color: colors.textMuted }]}>Allergie</Text>
+                            </View>
+                            {data.allergies.length > 0 ? (
+                                <View style={styles.tagsContainer}>
+                                    {data.allergies.map((item, index) => (
                                         <View key={index} style={[styles.tag, { backgroundColor: colors.redLighter }]}>
                                             <Text style={[styles.tagText, { color: Colors.primary }]}>{item}</Text>
                                         </View>
-                                    ))
-                                ) : (
-                                    <View style={[styles.tag, { backgroundColor: colors.redLighter }]}>
-                                        <Text style={[styles.tagText, { color: Colors.primary }]}>Nessuna</Text>
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                        <View style={styles.medicalSection}>
-                            <Text style={[styles.gridLabel, { color: colors.textMuted }]}>Patologie</Text>
-                            <View style={styles.tagsContainer}>
-                                {data.conditions.length > 0 ? (
-                                    data.conditions.map((item, index) => (
-                                        <View key={index} style={[styles.tag, { backgroundColor: colors.border }]}>
-                                            <Text style={[styles.tagText, { color: colors.text }]}>{item}</Text>
-                                        </View>
-                                    ))
-                                ) : (
-                                    <View style={[styles.tag, { backgroundColor: colors.border }]}>
-                                        <Text style={[styles.tagText, { color: colors.text }]}>Nessuna</Text>
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                        <View style={styles.medicalSection}>
-                            <Text style={[styles.gridLabel, { color: colors.textMuted }]}>Farmaci attuali</Text>
-                            {data.medications.length > 0 ? (
-                                data.medications.map((item, index) => (
-                                    <View key={index} style={styles.medicationItem}>
-                                        <View style={styles.bulletPoint} />
-                                        <Text style={[styles.gridValue, { color: colors.text }]}>{item}</Text>
-                                    </View>
-                                ))
+                                    ))}
+                                </View>
                             ) : (
-                                <Text style={[styles.gridValue, { color: colors.text }]}>Nessuno</Text>
+                                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nessuna</Text>
                             )}
                         </View>
-                    </View>
+
+                        {/* Conditions */}
+                        <View style={styles.medicalSection}>
+                            <View style={styles.medicalLabelRow}>
+                                <MaterialIcons name="healing" size={16} color={colors.textMuted} />
+                                <Text style={[styles.medicalLabel, { color: colors.textMuted }]}>Patologie</Text>
+                            </View>
+                            {data.conditions.length > 0 ? (
+                                <View style={styles.tagsContainer}>
+                                    {data.conditions.map((item, index) => (
+                                        <View key={index} style={[styles.tag, { backgroundColor: colors.redLighter }]}>
+                                            <Text style={[styles.tagText, { color: Colors.primary }]}>{item}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            ) : (
+                                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nessuna</Text>
+                            )}
+                        </View>
+
+                        {/* Medications */}
+                        <View style={styles.medicalSection}>
+                            <View style={styles.medicalLabelRow}>
+                                <MaterialIcons name="medication" size={16} color={colors.textMuted} />
+                                <Text style={[styles.medicalLabel, { color: colors.textMuted }]}>Farmaci</Text>
+                            </View>
+                            {data.medications.length > 0 ? (
+                                <View style={styles.tagsContainer}>
+                                    {data.medications.map((item, index) => (
+                                        <View key={index} style={[styles.tag, { backgroundColor: colors.redLighter }]}>
+                                            <Text style={[styles.tagText, { color: Colors.primary }]}>{item}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            ) : (
+                                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nessuno</Text>
+                            )}
+                        </View>
+                    </Animated.View>
                 </Animated.View>
             </ScrollView>
 
             {/* Bottom Button */}
-            <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+            <Animated.View
+                style={[
+                    styles.bottomContainer,
+                    { paddingBottom: Math.max(insets.bottom, 24) },
+                    { opacity: buttonAnim, transform: [{ scale: buttonScale }] }
+                ]}
+            >
                 <Pressable
                     onPress={onConfirm}
                     style={({ pressed }) => [
@@ -277,12 +475,12 @@ export default function FamilyCaregiverSummary({
                         },
                     ]}
                 >
+                    <MaterialIcons name="check" size={20} color="#FFFFFF" />
                     <Text style={styles.confirmButtonText}>
-                        Conferma e Inizia
+                        Conferma e Continua
                     </Text>
-                    <MaterialIcons name="check-circle" size={24} color="#FFFFFF" />
                 </Pressable>
-            </View>
+            </Animated.View>
         </View>
     );
 }
@@ -291,12 +489,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    backgroundBlurs: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden',
+        zIndex: 0,
+    },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+        opacity: 0.5,
+    },
+    topBlur: {
+        top: '-10%',
+        right: '-10%',
+        width: 256,
+        height: 256,
+    },
+    bottomBlur: {
+        bottom: '-10%',
+        left: '-10%',
+        width: 320,
+        height: 320,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 12,
+        zIndex: 10,
     },
     backButton: {
         width: 40,
@@ -327,29 +552,43 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        zIndex: 10,
     },
     scrollContent: {
         paddingHorizontal: 24,
-        paddingTop: 16,
-        paddingBottom: 140,
+        paddingTop: 8,
+        paddingBottom: 120,
     },
     content: {
         flex: 1,
+    },
+    successBadgeContainer: {
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    checkCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     title: {
         fontSize: 28,
         fontWeight: 'bold',
         marginBottom: 8,
+        textAlign: 'center',
     },
     subtitle: {
-        fontSize: 16,
-        lineHeight: 22,
+        fontSize: 14,
+        lineHeight: 20,
         marginBottom: 24,
+        textAlign: 'center',
     },
     card: {
+        padding: 20,
         borderRadius: 16,
         borderWidth: 1,
-        padding: 20,
         marginBottom: 16,
         position: 'relative',
     },
@@ -357,12 +596,14 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 16,
         right: 16,
-        zIndex: 1,
-        padding: 4,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        zIndex: 10,
     },
     editButtonText: {
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -373,7 +614,7 @@ const styles = StyleSheet.create({
     cardIcon: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -382,57 +623,83 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     cardGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 16,
+        gap: 14,
     },
     gridItem: {
-        width: '45%',
+        gap: 4,
     },
     gridLabel: {
-        fontSize: 11,
-        fontWeight: '600',
+        fontSize: 12,
+        fontWeight: '500',
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 4,
+        letterSpacing: 0.3,
     },
     gridValue: {
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '600',
+    },
+    physicalDataRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    physicalDataItem: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: 16,
+        borderRadius: 12,
+    },
+    physicalValue: {
+        fontSize: 28,
+        fontWeight: 'bold',
+    },
+    physicalUnit: {
+        fontSize: 16,
+    },
+    addressRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 8,
+    },
+    addressText: {
+        flex: 1,
+        fontSize: 16,
+        lineHeight: 22,
     },
     medicalSection: {
-        marginTop: 8,
+        marginBottom: 16,
+    },
+    medicalLabelRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 8,
+    },
+    medicalLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 0.3,
     },
     tagsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
-        marginTop: 8,
     },
     tag: {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 16,
+        borderRadius: 8,
     },
     tagText: {
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
     },
-    divider: {
-        height: 1,
-        marginVertical: 16,
-    },
-    medicationItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginTop: 4,
-    },
-    bulletPoint: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: Colors.primary,
+    emptyText: {
+        fontSize: 15,
+        fontStyle: 'italic',
     },
     bottomContainer: {
         position: 'absolute',
@@ -441,6 +708,7 @@ const styles = StyleSheet.create({
         right: 0,
         paddingHorizontal: 24,
         paddingTop: 16,
+        zIndex: 20,
     },
     confirmButton: {
         flexDirection: 'row',
@@ -448,7 +716,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 16,
         borderRadius: 16,
-        gap: 12,
+        gap: 8,
         shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -456,8 +724,8 @@ const styles = StyleSheet.create({
         elevation: 4,
     },
     confirmButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '600',
         color: '#FFFFFF',
     },
 });

@@ -8,6 +8,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     colorScheme: 'light' | 'dark';
@@ -15,6 +16,7 @@ interface Props {
 
 export default function OnboardingScreen5({ colorScheme }: Props) {
     const colors = Colors[colorScheme];
+    const insets = useSafeAreaInsets();
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(20)).current;
     const slideUpOpacity = useRef(new Animated.Value(0)).current;
@@ -112,9 +114,9 @@ export default function OnboardingScreen5({ colorScheme }: Props) {
             />
 
             {/* Logo */}
-            <Animated.View style={[styles.logoContainer, { opacity: fadeIn }]}>
+            <Animated.View style={[styles.logoContainer, { opacity: fadeIn, top: insets.top }]}>
                 <Image
-                    source={require('@/assets/images/icon.png')}
+                    source={require('@/assets/images/carenet-logo.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
@@ -213,14 +215,12 @@ const styles = StyleSheet.create({
         height: 320,
     },
     logoContainer: {
-        width: 80,
-        height: 80,
-        marginBottom: 40,
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.15,
-        shadowRadius: 15,
-        elevation: 8,
+        position: 'absolute',
+        top: 5,
+        alignSelf: 'center',
+        width: 100,
+        height: 100,
+        zIndex: 20,
     },
     logo: {
         width: '100%',
@@ -228,7 +228,8 @@ const styles = StyleSheet.create({
     },
     illustrationContainer: {
         position: 'relative',
-        marginBottom: 40,
+        marginTop: 60,
+        marginBottom: 32,
         alignItems: 'center',
         justifyContent: 'center',
     },

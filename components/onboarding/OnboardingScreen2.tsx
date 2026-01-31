@@ -8,6 +8,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     colorScheme: 'light' | 'dark';
@@ -15,6 +16,7 @@ interface Props {
 
 export default function OnboardingScreen2({ colorScheme }: Props) {
     const colors = Colors[colorScheme];
+    const insets = useSafeAreaInsets();
     const fadeIn = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(0.8)).current;
     const pulseOpacity = useRef(new Animated.Value(0.5)).current;
@@ -71,9 +73,9 @@ export default function OnboardingScreen2({ colorScheme }: Props) {
     return (
         <Animated.View style={[styles.container, { backgroundColor: colors.background, opacity: fadeIn }]}>
             {/* Logo */}
-            <View style={styles.logoContainer}>
+            <View style={[styles.logoContainer, { top: insets.top }]}>
                 <Image
-                    source={require('@/assets/images/icon.png')}
+                    source={require('@/assets/images/carenet-logo.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
@@ -164,9 +166,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
     },
     logoContainer: {
-        width: 64,
-        height: 64,
-        marginBottom: 48,
+        position: 'absolute',
+        top: 5,
+        alignSelf: 'center',
+        width: 100,
+        height: 100,
+        zIndex: 20,
     },
     logo: {
         width: '100%',
@@ -177,7 +182,8 @@ const styles = StyleSheet.create({
         height: 256,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 48,
+        marginTop: 60,
+        marginBottom: 32,
     },
     pulseRing: {
         position: 'absolute',

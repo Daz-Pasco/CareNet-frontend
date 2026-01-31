@@ -58,11 +58,39 @@ export default function FamilyCaregiverPersonalInfo({
     const [caregiverPhone, setCaregiverPhone] = useState(initialData?.caregiverPhone || '');
     const [gender, setGender] = useState<'male' | 'female' | 'other' | null>(initialData?.gender || null);
 
-    // Animation refs
+    // Focus states for visual feedback
+    const [dateOfBirthFocused, setDateOfBirthFocused] = useState(false);
+    const [patientPhoneFocused, setPatientPhoneFocused] = useState(false);
+    const [caregiverPhoneFocused, setCaregiverPhoneFocused] = useState(false);
+
+    // Animation refs - Main
     const fadeIn = useRef(new Animated.Value(0)).current;
     const slideUp = useRef(new Animated.Value(30)).current;
+    const iconScale = useRef(new Animated.Value(0.8)).current;
+
+    // Staggered field animations
+    const field1Anim = useRef(new Animated.Value(0)).current;
+    const field1Slide = useRef(new Animated.Value(20)).current;
+    const field2Anim = useRef(new Animated.Value(0)).current;
+    const field2Slide = useRef(new Animated.Value(20)).current;
+    const field3Anim = useRef(new Animated.Value(0)).current;
+    const field3Slide = useRef(new Animated.Value(20)).current;
+    const field4Anim = useRef(new Animated.Value(0)).current;
+    const field4Slide = useRef(new Animated.Value(20)).current;
+
+    // Button animation
+    const buttonAnim = useRef(new Animated.Value(0)).current;
+    const buttonSlide = useRef(new Animated.Value(30)).current;
+
+    // Background pulse
+    const pulseAnim1 = useRef(new Animated.Value(1)).current;
+    const pulseAnim2 = useRef(new Animated.Value(1)).current;
+
+    // Icon glow
+    const iconGlow = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
+        // Main fade in with icon spring
         Animated.parallel([
             Animated.timing(fadeIn, {
                 toValue: 1,
@@ -74,7 +102,82 @@ export default function FamilyCaregiverPersonalInfo({
                 duration: 500,
                 useNativeDriver: true,
             }),
+            Animated.spring(iconScale, {
+                toValue: 1,
+                friction: 4,
+                tension: 80,
+                useNativeDriver: true,
+            }),
         ]).start();
+
+        // Staggered field animations
+        const staggerDelay = 100;
+
+        Animated.sequence([
+            Animated.delay(200),
+            Animated.parallel([
+                Animated.timing(field1Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(field1Slide, { toValue: 0, duration: 400, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay),
+            Animated.parallel([
+                Animated.timing(field2Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(field2Slide, { toValue: 0, duration: 400, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay * 2),
+            Animated.parallel([
+                Animated.timing(field3Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(field3Slide, { toValue: 0, duration: 400, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        Animated.sequence([
+            Animated.delay(200 + staggerDelay * 3),
+            Animated.parallel([
+                Animated.timing(field4Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.timing(field4Slide, { toValue: 0, duration: 400, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Button entrance
+        Animated.sequence([
+            Animated.delay(600),
+            Animated.parallel([
+                Animated.timing(buttonAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+                Animated.spring(buttonSlide, { toValue: 0, friction: 6, tension: 60, useNativeDriver: true }),
+            ]),
+        ]).start();
+
+        // Background pulse animations
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim1, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                Animated.timing(pulseAnim1, { toValue: 1, duration: 2500, useNativeDriver: true }),
+            ])
+        ).start();
+
+        setTimeout(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim2, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+                    Animated.timing(pulseAnim2, { toValue: 1, duration: 2500, useNativeDriver: true }),
+                ])
+            ).start();
+        }, 1250);
+
+        // Icon glow pulse
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(iconGlow, { toValue: 1.15, duration: 1500, useNativeDriver: true }),
+                Animated.timing(iconGlow, { toValue: 1, duration: 1500, useNativeDriver: true }),
+            ])
+        ).start();
     }, []);
 
     // Auto-format date as DD/MM/YYYY
@@ -174,6 +277,30 @@ export default function FamilyCaregiverPersonalInfo({
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Background decorative blurs with pulse */}
+            <View style={styles.backgroundBlurs}>
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.topBlur,
+                        {
+                            backgroundColor: colors.redLight,
+                            transform: [{ scale: pulseAnim1 }],
+                        },
+                    ]}
+                />
+                <Animated.View
+                    style={[
+                        styles.decorativeBlur,
+                        styles.bottomBlur,
+                        {
+                            backgroundColor: colors.redLighter,
+                            transform: [{ scale: pulseAnim2 }],
+                        },
+                    ]}
+                />
+            </View>
+
             {/* Header */}
             <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
                 <Pressable
@@ -203,13 +330,14 @@ export default function FamilyCaregiverPersonalInfo({
 
             {/* Main Content */}
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.keyboardView}
+                style={styles.keyboardAvoid}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <ScrollView
                     style={styles.scrollView}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                 >
                     <Animated.View
                         style={[
@@ -220,158 +348,215 @@ export default function FamilyCaregiverPersonalInfo({
                             },
                         ]}
                     >
+                        {/* Icon with glow pulse */}
+                        <View style={styles.iconContainer}>
+                            <Animated.View
+                                style={[
+                                    styles.iconGlow,
+                                    {
+                                        backgroundColor: colors.redLighter,
+                                        transform: [{ scale: iconGlow }],
+                                    }
+                                ]}
+                            />
+                            <Animated.View
+                                style={[
+                                    styles.iconCircle,
+                                    {
+                                        backgroundColor: colors.surface,
+                                        borderColor: colors.border,
+                                        transform: [{ scale: iconScale }],
+                                    },
+                                ]}
+                            >
+                                <MaterialIcons name="person-outline" size={56} color={Colors.primary} />
+                            </Animated.View>
+                        </View>
+
                         {/* Title */}
-                        <Text style={[styles.title, { color: colors.text }]}>
-                            Informazioni personali
-                        </Text>
-                        <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-                            Inserisci i dati del tuo assistito per aiutarci a personalizzare la sua esperienza
-                        </Text>
+                        <View style={styles.titleContainer}>
+                            <Text style={[styles.title, { color: colors.text }]}>
+                                Dati dell'Assistito
+                            </Text>
+                            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+                                Inserisci i dati personali della persona che stai assistendo.
+                            </Text>
+                        </View>
 
-                        {/* Form */}
-                        <View style={styles.form}>
-                            {/* Date of Birth */}
-                            <View style={styles.inputGroup}>
-                                <Text style={[styles.label, { color: colors.text }]}>
-                                    Data di nascita
-                                </Text>
-                                <View style={[styles.inputWrapper, {
-                                    backgroundColor: colors.surface,
-                                    borderColor: dateValidation.error ? Colors.primary : colors.border,
-                                }]}>
-                                    <TextInput
-                                        style={[styles.input, { color: colors.text }]}
-                                        placeholder="DD/MM/YYYY"
-                                        placeholderTextColor={colors.textMuted}
-                                        value={dateOfBirth}
-                                        onChangeText={handleDateChange}
-                                        keyboardType="number-pad"
-                                        maxLength={10}
-                                    />
-                                    <MaterialIcons
-                                        name="calendar-today"
-                                        size={20}
-                                        color={colors.textMuted}
-                                        style={styles.inputIcon}
-                                    />
-                                </View>
-                                {dateValidation.error && (
-                                    <Text style={styles.errorText}>
-                                        {dateValidation.error}
-                                    </Text>
-                                )}
+                        {/* Date of Birth Field */}
+                        <Animated.View
+                            style={[
+                                styles.inputGroup,
+                                { opacity: field1Anim, transform: [{ translateY: field1Slide }] }
+                            ]}
+                        >
+                            <Text style={[styles.label, { color: colors.text }]}>
+                                Data di Nascita
+                            </Text>
+                            <View
+                                style={[
+                                    styles.inputWrapper,
+                                    {
+                                        backgroundColor: colors.surface,
+                                        borderColor: dateOfBirthFocused ? Colors.primary : colors.border,
+                                        borderWidth: dateOfBirthFocused ? 2 : 1,
+                                    }
+                                ]}
+                            >
+                                <MaterialIcons name="cake" size={20} color={dateOfBirthFocused ? Colors.primary : colors.textMuted} style={styles.inputIcon} />
+                                <TextInput
+                                    style={[styles.input, { color: colors.text }]}
+                                    placeholder="GG/MM/AAAA"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={dateOfBirth}
+                                    onChangeText={handleDateChange}
+                                    keyboardType="number-pad"
+                                    maxLength={10}
+                                    onFocus={() => setDateOfBirthFocused(true)}
+                                    onBlur={() => setDateOfBirthFocused(false)}
+                                />
                             </View>
-
-                            {/* Patient Phone */}
-                            <View style={styles.inputGroup}>
-                                <Text style={[styles.label, { color: colors.text }]}>
-                                    Numero dell'Assistito
-                                </Text>
-                                <View style={[styles.inputWrapper, {
-                                    backgroundColor: colors.surface,
-                                    borderColor: colors.border,
-                                }]}>
-                                    <Text style={[styles.phonePrefix, { color: colors.textMuted }]}>
-                                        +39
-                                    </Text>
-                                    <TextInput
-                                        style={[styles.phoneInput, { color: colors.text }]}
-                                        placeholder="333 123 4567"
-                                        placeholderTextColor={colors.textMuted}
-                                        value={patientPhone}
-                                        onChangeText={handlePatientPhoneChange}
-                                        keyboardType="number-pad"
-                                        maxLength={12}
-                                    />
+                            {dateValidation.error && (
+                                <View style={styles.errorContainer}>
+                                    <MaterialIcons name="error-outline" size={14} color={Colors.primary} />
+                                    <Text style={[styles.errorText, { color: Colors.primary }]}>{dateValidation.error}</Text>
                                 </View>
-                            </View>
+                            )}
+                        </Animated.View>
 
-                            {/* Caregiver Phone */}
-                            <View style={styles.inputGroup}>
-                                <Text style={[styles.label, { color: colors.text }]}>
-                                    Numero dell'Assistente
-                                </Text>
-                                <View style={[styles.inputWrapper, {
-                                    backgroundColor: colors.surface,
-                                    borderColor: colors.border,
-                                }]}>
-                                    <Text style={[styles.phonePrefix, { color: colors.textMuted }]}>
-                                        +39
-                                    </Text>
-                                    <TextInput
-                                        style={[styles.phoneInput, { color: colors.text }]}
-                                        placeholder="333 123 4567"
-                                        placeholderTextColor={colors.textMuted}
-                                        value={caregiverPhone}
-                                        onChangeText={handleCaregiverPhoneChange}
-                                        keyboardType="number-pad"
-                                        maxLength={12}
-                                    />
+                        {/* Patient Phone Field */}
+                        <Animated.View
+                            style={[
+                                styles.inputGroup,
+                                { opacity: field2Anim, transform: [{ translateY: field2Slide }] }
+                            ]}
+                        >
+                            <Text style={[styles.label, { color: colors.text }]}>
+                                Telefono Assistito
+                            </Text>
+                            <View
+                                style={[
+                                    styles.inputWrapper,
+                                    {
+                                        backgroundColor: colors.surface,
+                                        borderColor: patientPhoneFocused ? Colors.primary : colors.border,
+                                        borderWidth: patientPhoneFocused ? 2 : 1,
+                                    }
+                                ]}
+                            >
+                                <MaterialIcons name="phone" size={20} color={patientPhoneFocused ? Colors.primary : colors.textMuted} style={styles.inputIcon} />
+                                <TextInput
+                                    style={[styles.input, { color: colors.text }]}
+                                    placeholder="333 123 4567"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={patientPhone}
+                                    onChangeText={handlePatientPhoneChange}
+                                    keyboardType="phone-pad"
+                                    maxLength={12}
+                                    onFocus={() => setPatientPhoneFocused(true)}
+                                    onBlur={() => setPatientPhoneFocused(false)}
+                                />
+                            </View>
+                        </Animated.View>
+
+                        {/* Caregiver Phone Field */}
+                        <Animated.View
+                            style={[
+                                styles.inputGroup,
+                                { opacity: field3Anim, transform: [{ translateY: field3Slide }] }
+                            ]}
+                        >
+                            <Text style={[styles.label, { color: colors.text }]}>
+                                Il tuo Telefono
+                            </Text>
+                            <View
+                                style={[
+                                    styles.inputWrapper,
+                                    {
+                                        backgroundColor: colors.surface,
+                                        borderColor: caregiverPhoneFocused ? Colors.primary : (phonesAreSame ? '#f97316' : colors.border),
+                                        borderWidth: caregiverPhoneFocused || phonesAreSame ? 2 : 1,
+                                    }
+                                ]}
+                            >
+                                <MaterialIcons name="phone-android" size={20} color={caregiverPhoneFocused ? Colors.primary : colors.textMuted} style={styles.inputIcon} />
+                                <TextInput
+                                    style={[styles.input, { color: colors.text }]}
+                                    placeholder="333 123 4567"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={caregiverPhone}
+                                    onChangeText={handleCaregiverPhoneChange}
+                                    keyboardType="phone-pad"
+                                    maxLength={12}
+                                    onFocus={() => setCaregiverPhoneFocused(true)}
+                                    onBlur={() => setCaregiverPhoneFocused(false)}
+                                />
+                            </View>
+                            {phonesAreSame && (
+                                <View style={styles.errorContainer}>
+                                    <MaterialIcons name="warning" size={14} color="#f97316" />
+                                    <Text style={[styles.errorText, { color: '#f97316' }]}>I numeri devono essere diversi</Text>
                                 </View>
-                                {phonesAreSame && (
-                                    <Text style={styles.errorText}>
-                                        I numeri non possono essere uguali
-                                    </Text>
-                                )}
-                            </View>
+                            )}
+                        </Animated.View>
 
-                            {/* Gender */}
-                            <View style={styles.inputGroup}>
-                                <Text style={[styles.label, { color: colors.text }]}>
-                                    Genere
-                                </Text>
-                                <View style={styles.genderOptions}>
-                                    {genderOptions.map((option) => (
-                                        <Pressable
-                                            key={option.value}
-                                            onPress={() => setGender(option.value)}
-                                            style={({ pressed }) => [
-                                                styles.genderOption,
-                                                {
-                                                    backgroundColor: colors.surface,
-                                                    borderColor: gender === option.value
-                                                        ? Colors.primary
-                                                        : colors.border,
-                                                },
-                                                gender === option.value && styles.genderOptionSelected,
-                                                pressed && { opacity: 0.8 },
-                                            ]}
-                                        >
+                        {/* Gender Selection */}
+                        <Animated.View
+                            style={[
+                                styles.inputGroup,
+                                { opacity: field4Anim, transform: [{ translateY: field4Slide }] }
+                            ]}
+                        >
+                            <Text style={[styles.label, { color: colors.text }]}>
+                                Genere
+                            </Text>
+                            <View style={styles.genderButtons}>
+                                {genderOptions.map((option) => (
+                                    <Pressable
+                                        key={option.value}
+                                        onPress={() => setGender(option.value)}
+                                        style={({ pressed }) => [
+                                            styles.genderButton,
+                                            {
+                                                backgroundColor: gender === option.value ? colors.redLighter : colors.surface,
+                                                borderColor: gender === option.value ? Colors.primary : colors.border,
+                                                borderWidth: gender === option.value ? 2 : 1,
+                                                transform: [{ scale: pressed ? 0.97 : 1 }],
+                                            },
+                                        ]}
+                                    >
+                                        <View style={[
+                                            styles.genderIconCircle,
+                                            { backgroundColor: gender === option.value ? Colors.primary : colors.background }
+                                        ]}>
                                             <MaterialIcons
                                                 name={option.icon}
-                                                size={24}
-                                                color={gender === option.value ? Colors.primary : colors.textMuted}
-                                                style={styles.genderIcon}
+                                                size={20}
+                                                color={gender === option.value ? '#FFFFFF' : colors.textMuted}
                                             />
-                                            <Text style={[
-                                                styles.genderLabel,
-                                                { color: gender === option.value ? Colors.primary : colors.text },
-                                            ]}>
-                                                {option.label}
-                                            </Text>
-                                            <View style={[
-                                                styles.radioOuter,
-                                                { borderColor: gender === option.value ? Colors.primary : colors.border },
-                                                gender === option.value && { backgroundColor: Colors.primary },
-                                            ]}>
-                                                {gender === option.value && (
-                                                    <View style={styles.radioInner} />
-                                                )}
-                                            </View>
-                                        </Pressable>
-                                    ))}
-                                </View>
-                                <Text style={[styles.genderNote, { color: colors.textMuted }]}>
-                                    Seleziona il sesso biologico per la calibrazione dei sensori medici. Questo dato serve solo a definire le soglie di allarme per la tua sicurezza.
-                                </Text>
+                                        </View>
+                                        <Text style={[
+                                            styles.genderLabel,
+                                            { color: gender === option.value ? Colors.primary : colors.text }
+                                        ]}>
+                                            {option.label}
+                                        </Text>
+                                    </Pressable>
+                                ))}
                             </View>
-                        </View>
+                        </Animated.View>
                     </Animated.View>
                 </ScrollView>
             </KeyboardAvoidingView>
 
             {/* Bottom Button */}
-            <View style={styles.bottomContainer}>
+            <Animated.View
+                style={[
+                    styles.bottomContainer,
+                    { paddingBottom: Math.max(insets.bottom, 24) },
+                    { opacity: buttonAnim, transform: [{ translateY: buttonSlide }] }
+                ]}
+            >
                 <Pressable
                     onPress={handleContinue}
                     disabled={!isFormValid}
@@ -396,7 +581,7 @@ export default function FamilyCaregiverPersonalInfo({
                         color={isFormValid ? '#FFFFFF' : colors.textMuted}
                     />
                 </Pressable>
-            </View>
+            </Animated.View>
         </View>
     );
 }
@@ -405,12 +590,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    backgroundBlurs: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden',
+        zIndex: 0,
+    },
+    decorativeBlur: {
+        position: 'absolute',
+        borderRadius: 999,
+        opacity: 0.5,
+    },
+    topBlur: {
+        top: '-10%',
+        right: '-10%',
+        width: 256,
+        height: 256,
+    },
+    bottomBlur: {
+        bottom: '-10%',
+        left: '-10%',
+        width: 320,
+        height: 320,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 12,
+        zIndex: 10,
     },
     backButton: {
         width: 40,
@@ -418,7 +630,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 20,
-        marginLeft: -8,
     },
     progressContainer: {
         alignItems: 'flex-end',
@@ -440,122 +651,119 @@ const styles = StyleSheet.create({
         height: '100%',
         borderRadius: 3,
     },
-    keyboardView: {
+    keyboardAvoid: {
         flex: 1,
+        zIndex: 10,
     },
     scrollView: {
         flex: 1,
     },
     scrollContent: {
         paddingHorizontal: 24,
-        paddingTop: 16,
+        paddingTop: 32,
         paddingBottom: 120,
     },
     content: {
         flex: 1,
+        alignItems: 'center',
+        overflow: 'visible',
+    },
+    iconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 16,
+        marginBottom: 20,
+        position: 'relative',
+        overflow: 'visible',
+    },
+    iconGlow: {
+        position: 'absolute',
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        opacity: 0.5,
+    },
+    iconCircle: {
+        width: 110,
+        height: 110,
+        borderRadius: 55,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 4,
+    },
+    titleContainer: {
+        alignItems: 'center',
+        marginBottom: 28,
     },
     title: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 8,
     },
     subtitle: {
-        fontSize: 16,
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    form: {
-        gap: 24,
+        fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 20,
     },
     inputGroup: {
-        gap: 8,
-    },
-    errorText: {
-        fontSize: 12,
-        color: Colors.primary,
-        marginTop: 4,
-    },
-    labelRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
+        width: '100%',
+        marginBottom: 18,
     },
     label: {
         fontSize: 14,
-        fontWeight: '500',
-    },
-    optionalText: {
-        fontSize: 12,
-        fontStyle: 'italic',
+        fontWeight: '600',
+        marginBottom: 8,
     },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 16,
+        borderRadius: 14,
+        paddingHorizontal: 14,
+    },
+    inputIcon: {
+        marginRight: 10,
     },
     input: {
         flex: 1,
-        paddingVertical: 14,
+        paddingVertical: 16,
         fontSize: 16,
     },
-    inputIcon: {
-        marginLeft: 8,
-    },
-    phonePrefix: {
-        fontSize: 16,
-        marginRight: 8,
-    },
-    phoneInput: {
-        flex: 1,
-        paddingVertical: 14,
-        fontSize: 16,
-    },
-    genderOptions: {
-        gap: 12,
-    },
-    genderNote: {
-        fontSize: 12,
-        fontStyle: 'italic',
-        marginTop: 12,
-        lineHeight: 18,
-    },
-    genderOption: {
+    errorContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
+        gap: 6,
+        marginTop: 6,
     },
-    genderOptionSelected: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+    errorText: {
+        fontSize: 13,
     },
-    genderIcon: {
-        marginRight: 16,
+    genderButtons: {
+        flexDirection: 'row',
+        gap: 12,
     },
-    genderLabel: {
+    genderButton: {
         flex: 1,
-        fontSize: 16,
-        fontWeight: '500',
+        flexDirection: 'column',
+        alignItems: 'center',
+        paddingVertical: 18,
+        borderRadius: 16,
+        gap: 10,
     },
-    radioOuter: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        borderWidth: 2,
+    genderIconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    radioInner: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#FFFFFF',
+    genderLabel: {
+        fontSize: 15,
+        fontWeight: '600',
     },
     bottomContainer: {
         position: 'absolute',
@@ -563,8 +771,8 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         paddingHorizontal: 24,
-        paddingBottom: 32,
         paddingTop: 16,
+        zIndex: 20,
     },
     continueButton: {
         flexDirection: 'row',

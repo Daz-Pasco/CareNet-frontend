@@ -7,10 +7,12 @@ import {
     Dimensions,
     Image,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
-    View,
+    View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +23,7 @@ interface RoleOption {
     title: string;
     description: string;
     icon: keyof typeof MaterialIcons.glyphMap;
+    badge: string;
 }
 
 const roles: RoleOption[] = [
@@ -29,12 +32,14 @@ const roles: RoleOption[] = [
         title: 'Professionista Sanitario',
         description: 'Gestisci pazienti, monitora i parametri vitali e invia referti.',
         icon: 'medical-services',
+        badge: 'Medico / Infermiere',
     },
     {
         id: 'caregiver',
         title: 'Caregiver Familiare',
         description: 'Prenditi cura dei tuoi cari, ricevi aggiornamenti e supporto quotidiano.',
         icon: 'volunteer-activism',
+        badge: 'Familiare / Assistente',
     },
 ];
 
@@ -46,13 +51,17 @@ interface Props {
 export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelected }: Props) {
     const colors = Colors[colorScheme];
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [selectedRole, setSelectedRole] = useState<Role>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Animations
     const fadeIn = useRef(new Animated.Value(0)).current;
-    const slideUp1 = useRef(new Animated.Value(30)).current;
-    const slideUp2 = useRef(new Animated.Value(30)).current;
+    const titleSlide = useRef(new Animated.Value(20)).current;
+    const slideUp1 = useRef(new Animated.Value(40)).current;
+    const scale1 = useRef(new Animated.Value(0.95)).current;
+    const slideUp2 = useRef(new Animated.Value(40)).current;
+    const scale2 = useRef(new Animated.Value(0.95)).current;
     const buttonSlide = useRef(new Animated.Value(30)).current;
     const pulseAnim1 = useRef(new Animated.Value(1)).current;
     const pulseAnim2 = useRef(new Animated.Value(1)).current;
@@ -61,31 +70,36 @@ export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelec
         // Fade in
         Animated.timing(fadeIn, {
             toValue: 1,
-            duration: 800,
+            duration: 600,
             useNativeDriver: true,
         }).start();
 
-        // Staggered slide up for cards
+        // Title slide
+        Animated.timing(titleSlide, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+        }).start();
+
+        // Staggered slide up for cards with spring
         Animated.sequence([
-            Animated.delay(100),
-            Animated.timing(slideUp1, {
-                toValue: 0,
-                duration: 500,
-                useNativeDriver: true,
-            }),
+            Animated.delay(150),
+            Animated.parallel([
+                Animated.timing(slideUp1, { toValue: 0, duration: 450, useNativeDriver: true }),
+                Animated.spring(scale1, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
         ]).start();
 
         Animated.sequence([
-            Animated.delay(200),
-            Animated.timing(slideUp2, {
-                toValue: 0,
-                duration: 500,
-                useNativeDriver: true,
-            }),
+            Animated.delay(280),
+            Animated.parallel([
+                Animated.timing(slideUp2, { toValue: 0, duration: 450, useNativeDriver: true }),
+                Animated.spring(scale2, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
+            ]),
         ]).start();
 
         Animated.sequence([
-            Animated.delay(300),
+            Animated.delay(400),
             Animated.timing(buttonSlide, {
                 toValue: 0,
                 duration: 500,
@@ -98,12 +112,12 @@ export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelec
             Animated.sequence([
                 Animated.timing(pulseAnim1, {
                     toValue: 1.1,
-                    duration: 1500,
+                    duration: 2000,
                     useNativeDriver: true,
                 }),
                 Animated.timing(pulseAnim1, {
                     toValue: 1,
-                    duration: 1500,
+                    duration: 2000,
                     useNativeDriver: true,
                 }),
             ])
@@ -114,17 +128,17 @@ export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelec
                 Animated.sequence([
                     Animated.timing(pulseAnim2, {
                         toValue: 1.1,
-                        duration: 1500,
+                        duration: 2000,
                         useNativeDriver: true,
                     }),
                     Animated.timing(pulseAnim2, {
                         toValue: 1,
-                        duration: 1500,
+                        duration: 2000,
                         useNativeDriver: true,
                     }),
                 ])
             ).start();
-        }, 750);
+        }, 1000);
     }, []);
 
     const handleContinue = async () => {
@@ -142,6 +156,9 @@ export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelec
             setIsSubmitting(false);
         }
     };
+
+    const getSlideAnim = (index: number) => index === 0 ? slideUp1 : slideUp2;
+    const getScaleAnim = (index: number) => index === 0 ? scale1 : scale2;
 
     return (
         <Animated.View style={[styles.container, { backgroundColor: colors.background, opacity: fadeIn }]}>
@@ -169,82 +186,138 @@ export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelec
                 />
             </View>
 
-            {/* Logo and Title */}
-            <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                    <Image
-                        source={require('@/assets/images/icon.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
-                </View>
-                <Text style={[styles.title, { color: colors.text }]}>Chi sei?</Text>
+            {/* Back Button */}
+            <View style={[styles.headerNav, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
+                <Pressable
+                    onPress={() => router.replace('/onboarding' as any)}
+                    style={({ pressed }) => [
+                        styles.backButton,
+                        { backgroundColor: pressed ? colors.border : colors.surface }
+                    ]}
+                >
+                    <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+                </Pressable>
             </View>
 
-            {/* Role Cards - Centered */}
-            <View style={styles.cardsContainer}>
-                {roles.map((role, index) => {
-                    const isSelected = selectedRole === role.id;
-                    const slideAnim = index === 0 ? slideUp1 : slideUp2;
+            {/* Scrollable Content */}
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 24) + 80 }]}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header with Logo and Title */}
+                <Animated.View
+                    style={[
+                        styles.header,
+                        {
+                            opacity: fadeIn,
+                            transform: [{ translateY: titleSlide }],
+                        }
+                    ]}
+                >
+                    <View style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
+                        <Image
+                            source={require('@/assets/images/carenet-logo.png')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                    </View>
+                    <Text style={[styles.title, { color: colors.text }]}>Chi sei?</Text>
+                </Animated.View>
 
-                    return (
-                        <Animated.View
-                            key={role.id}
-                            style={{
-                                transform: [{ translateY: slideAnim }],
-                                opacity: fadeIn,
-                            }}
-                        >
-                            <Pressable
-                                onPress={() => setSelectedRole(role.id)}
-                                style={({ pressed }) => [
-                                    styles.roleCard,
-                                    {
-                                        backgroundColor: isSelected
-                                            ? (colorScheme === 'dark' ? '#450a0a' : '#FEF2F2')
-                                            : colors.surface,
-                                        borderColor: isSelected
-                                            ? Colors.primary
-                                            : (colorScheme === 'dark' ? '#3f3f46' : '#E5E7EB'),
-                                        transform: [{ scale: pressed ? 0.98 : 1 }],
-                                    },
-                                ]}
+                {/* Role Cards */}
+                <View style={styles.cardsContainer}>
+                    {roles.map((role, index) => {
+                        const isSelected = selectedRole === role.id;
+                        const slideAnim = getSlideAnim(index);
+                        const scaleAnim = getScaleAnim(index);
+
+                        return (
+                            <Animated.View
+                                key={role.id}
+                                style={{
+                                    transform: [
+                                        { translateY: slideAnim },
+                                        { scale: scaleAnim },
+                                    ],
+                                    opacity: fadeIn,
+                                }}
                             >
-                                <View
-                                    style={[
-                                        styles.iconContainer,
+                                <Pressable
+                                    onPress={() => setSelectedRole(role.id)}
+                                    style={({ pressed }) => [
+                                        styles.roleCard,
                                         {
                                             backgroundColor: isSelected
+                                                ? (colorScheme === 'dark' ? '#450a0a' : '#FEF2F2')
+                                                : colors.surface,
+                                            borderColor: isSelected
                                                 ? Colors.primary
-                                                : colors.redLighter,
+                                                : 'transparent',
+                                            borderWidth: 2,
+                                            transform: [{ scale: pressed ? 0.98 : 1 }],
                                         },
                                     ]}
                                 >
-                                    <MaterialIcons
-                                        name={role.icon}
-                                        size={32}
-                                        color={isSelected ? '#FFFFFF' : Colors.primary}
-                                    />
-                                </View>
-                                <View style={styles.roleContent}>
+                                    {/* Selection indicator */}
+                                    <View style={styles.cardTopRow}>
+                                        <View
+                                            style={[
+                                                styles.iconContainer,
+                                                {
+                                                    backgroundColor: isSelected
+                                                        ? Colors.primary
+                                                        : colors.redLighter,
+                                                },
+                                            ]}
+                                        >
+                                            <MaterialIcons
+                                                name={role.icon}
+                                                size={28}
+                                                color={isSelected ? '#FFFFFF' : Colors.primary}
+                                            />
+                                        </View>
+                                        <View style={[
+                                            styles.radioOuter,
+                                            { borderColor: isSelected ? Colors.primary : colors.border }
+                                        ]}>
+                                            {isSelected && (
+                                                <View style={[styles.radioInner, { backgroundColor: Colors.primary }]} />
+                                            )}
+                                        </View>
+                                    </View>
+
                                     <Text style={[styles.roleTitle, { color: colors.text }]}>
                                         {role.title}
                                     </Text>
                                     <Text style={[styles.roleDescription, { color: colors.textMuted }]}>
                                         {role.description}
                                     </Text>
-                                </View>
-                            </Pressable>
-                        </Animated.View>
-                    );
-                })}
-            </View>
 
-            {/* Continue Button */}
+                                    {/* Badge */}
+                                    <View style={[styles.badge, { backgroundColor: isSelected ? colors.redLighter : colors.background }]}>
+                                        <MaterialIcons
+                                            name={role.id === 'professional' ? 'badge' : 'favorite'}
+                                            size={14}
+                                            color={isSelected ? Colors.primary : colors.textMuted}
+                                        />
+                                        <Text style={[styles.badgeText, { color: isSelected ? Colors.primary : colors.textMuted }]}>
+                                            {role.badge}
+                                        </Text>
+                                    </View>
+                                </Pressable>
+                            </Animated.View>
+                        );
+                    })}
+                </View>
+            </ScrollView>
+
+            {/* Continue Button - Fixed at bottom */}
             <Animated.View
                 style={[
                     styles.buttonContainer,
                     {
+                        paddingBottom: Math.max(insets.bottom, 24),
                         transform: [{ translateY: buttonSlide }],
                         opacity: fadeIn,
                     },
@@ -256,14 +329,20 @@ export default function RoleSelectionScreen({ colorScheme = 'light', onRoleSelec
                     style={({ pressed }) => [
                         styles.continueButton,
                         {
-                            backgroundColor: selectedRole ? Colors.primary : '#9CA3AF',
-                            opacity: selectedRole ? (pressed ? 0.9 : 1) : 0.5,
+                            backgroundColor: selectedRole ? Colors.primary : colors.border,
+                            opacity: selectedRole ? (pressed ? 0.9 : 1) : 0.7,
                             transform: [{ scale: pressed && selectedRole ? 0.98 : 1 }],
                         },
                     ]}
                 >
-                    <Text style={styles.continueButtonText}>Continua</Text>
-                    <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
+                    <Text style={[styles.continueButtonText, { color: selectedRole ? '#FFFFFF' : colors.textMuted }]}>
+                        Continua
+                    </Text>
+                    <MaterialIcons
+                        name="arrow-forward"
+                        size={20}
+                        color={selectedRole ? '#FFFFFF' : colors.textMuted}
+                    />
                 </Pressable>
             </Animated.View>
         </Animated.View>
@@ -292,77 +371,138 @@ const styles = StyleSheet.create({
     topBlur: {
         top: '-10%',
         right: '-10%',
-        width: 256,
-        height: 256,
+        width: 280,
+        height: 280,
     },
     bottomBlur: {
         bottom: '-10%',
         left: '-10%',
-        width: 320,
-        height: 320,
+        width: 350,
+        height: 350,
+    },
+    headerNav: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        zIndex: 10,
+    },
+    backButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    scrollView: {
+        flex: 1,
+        zIndex: 10,
+    },
+    scrollContent: {
+        flexGrow: 1,
     },
     header: {
         alignItems: 'center',
-        paddingTop: 60,
         paddingBottom: 20,
+        paddingTop: 4,
         zIndex: 10,
     },
     logoContainer: {
-        width: 64,
-        height: 64,
-        marginBottom: 16,
+        width: 100,
+        height: 100,
+        marginBottom: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     logo: {
-        width: '100%',
-        height: '100%',
+        width: 100,
+        height: 100,
     },
     title: {
         fontSize: 32,
         fontWeight: 'bold',
+        textAlign: 'center',
         letterSpacing: -0.5,
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 15,
+        textAlign: 'center',
+        lineHeight: 22,
     },
     cardsContainer: {
-        flex: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         gap: 16,
         zIndex: 10,
-        paddingVertical: 20,
+        paddingTop: 8,
+        marginBottom: 24,
     },
     roleCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
         padding: 20,
-        borderRadius: 16,
-        borderWidth: 2,
-        gap: 16,
+        borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.06,
         shadowRadius: 8,
-        elevation: 4,
+        elevation: 3,
+    },
+    cardTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
     },
     iconContainer: {
         width: 56,
         height: 56,
-        borderRadius: 12,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    roleContent: {
-        flex: 1,
+    radioOuter: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    radioInner: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
     },
     roleTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 4,
+        marginBottom: 6,
     },
     roleDescription: {
         fontSize: 14,
         lineHeight: 20,
+        marginBottom: 14,
+    },
+    badge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    badgeText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
     buttonContainer: {
-        paddingBottom: 48,
+        marginTop: 'auto',
         paddingTop: 16,
+        paddingBottom: 8,
         zIndex: 10,
     },
     continueButton: {
@@ -371,16 +511,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 8,
         paddingVertical: 16,
-        borderRadius: 12,
+        borderRadius: 16,
         shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
     },
     continueButtonText: {
-        color: '#FFFFFF',
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: 'bold',
     },
 });

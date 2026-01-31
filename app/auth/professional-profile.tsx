@@ -27,10 +27,15 @@ export default function ProfessionalProfilePage() {
         } as Href);
     };
 
+    const handleBack = () => {
+        router.back();
+    };
+
     return (
         <ProfessionalProfileScreen
             colorScheme={colorScheme}
             onComplete={handleComplete}
+            onBack={handleBack}
         />
     );
 }
